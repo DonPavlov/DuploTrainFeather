@@ -6,8 +6,14 @@
 #include "buttons.hpp"
 #include "Lpf2Hub.h"
 
+#ifdef DEBUGWIFI
+#include "RemoteDebug.h"
 extern const char *secret_ssid;
 extern const char *secret_pass;
+RemoteDebug Debug;
+
+#endif // ifdef DEBUGWIFI
+
 
 Lpf2Hub myHub;
 byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
@@ -81,9 +87,21 @@ void setup()
 
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
-    Serial.print(".");
+    delay(1000);
+
+    Serial.println("Connecting to WiFi...");
   }
+
+  // Set static IP, gateway, subnet, and DNS
+  WiFi.config(staticIP, gateway, subnet, dns);
+
+  Serial.println("WiFi connected with static IP: " +
+                 WiFi.localIP().toString());
+
+  MDNS.begin(HOST_NAME);
+
+  Debug.begin(HOST_NAME);
+  Debug.setResetCmdEnabled(true);
 
   #endif // ifdef DEBUGWIFI
 
@@ -94,35 +112,40 @@ void setup()
 
 void loop()
 {
-  // // put your main code here, to run repeatedly:
-  // // connect flow
-  // if (myHub.isConnecting())
-  // {
-  //   myHub.connectHub();
+  #ifdef DEBUGWIFI
 
-  //   if (myHub.isConnected())
-  //   {
-  //     Serial.println("Connected to Duplo Hub");
+  Debug.handle();
+  #endif // ifdef DEBUGWIFI
 
-  //     delay(200);
+  // put your main code here, to run repeatedly:
+  // connect flow
+  if (myHub.isConnecting())
+  {
+    myHub.connectHub();
 
-  //     delay(200);
+    if (myHub.isConnected())
+    {
+      Serial.println("Connected to Duplo Hub");
 
-  //     // connect color sensor and activate it for updates
-  //     myHub.activatePortDevice((byte)DuploTrainHubPort::SPEEDOMETER,
-  //                              speedometerSensorCallback);
-  //     delay(200);
+      delay(200);
 
-  //     // connect speed sensor and activate it for updates
-  //     myHub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
-  //                              colorSensorCallback);
-  //     delay(200);
-  //     myHub.setLedColor(GREEN);
-  //   }
-  //   else
-  //   {
-  //     Serial.println("Failed to connect to Duplo Hub");
-  //   }
-  // }
-  // sleep(1);
+      delay(200);
+
+      // connect color sensor and activate it for updates
+      myHub.activatePortDevice((byte)DuploTrainHubPort::SPEEDOMETER,
+                               speedometerSensorCallback);
+      delay(200);
+
+      // connect speed sensor and activate it for updates
+      myHub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
+                               colorSensorCallback);
+      delay(200);
+      myHub.setLedColor(GREEN);
+    }
+    else
+    {
+      Serial.println("Failed to connect to Duplo Hub");
+    }
+  }
+  sleep(1);
 }

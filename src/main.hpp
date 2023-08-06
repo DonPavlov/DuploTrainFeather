@@ -11,6 +11,11 @@
 #define HOST_NAME "feather"
 #define USE_MDNS true
 
+// Set your Gateway IP address
+IPAddress staticIP(192, 168, 178, 123);
+IPAddress gateway(192, 168, 178, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress dns(8, 8, 8, 8);
 #endif // ifdef DEBUGWIFI
 
 
