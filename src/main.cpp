@@ -1,9 +1,13 @@
 #include "main.hpp"
 #include <cstring>
+#include <string>
 
 #include "train_control.hpp"
 #include "buttons.hpp"
 #include "Lpf2Hub.h"
+
+extern const char *secret_ssid;
+extern const char *secret_pass;
 
 Lpf2Hub myHub;
 byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
@@ -70,9 +74,20 @@ void speedometerSensorCallback(void      *hub,
 
 void setup()
 {
-  delay(5000);
   Serial.begin(9600);
-  Serial.println("Hello World!");
+  #ifdef DEBUGWIFI
+
+  WiFi.begin(secret_ssid, secret_pass);
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  #endif // ifdef DEBUGWIFI
+
+
   myHub.init();
   TrainControl zug(myHub);
 }
