@@ -53,4 +53,8 @@
     "editor.defaultFormatter": "zachflower.uncrustify",
     "editor.formatOnSave": true,
     "uncrustify.configPath.linux": "uncrustify.cfg",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
 }
