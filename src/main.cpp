@@ -6,17 +6,10 @@
 #include "buttons.hpp"
 #include "Lpf2Hub.h"
 
-#ifdef DEBUGWIFI
-#include "RemoteDebug.h"
-extern const char *secret_ssid;
-extern const char *secret_pass;
-RemoteDebug Debug;
-
-#endif // ifdef DEBUGWIFI
-
 
 Lpf2Hub myHub;
 byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
+
 
 void colorSensorCallback(void      *hub,
                          byte       portNumber,
@@ -46,6 +39,11 @@ void colorSensorCallback(void      *hub,
     }
   }
 }
+
+// void speedometerSensorCallback(void      *hub,
+//                                byte       portNumber,
+//                                DeviceType deviceType,
+//                                uint8_t   *pData);
 
 void speedometerSensorCallback(void      *hub,
                                byte       portNumber,
@@ -80,43 +78,17 @@ void speedometerSensorCallback(void      *hub,
 
 void setup()
 {
+  // Never delete this delay, this ensures the device can be reflashed without
+  // issues. Else hardreset with esptool and lucky timing while sending factory
+  // reset command and reseting the device
+  delay(2500);
   Serial.begin(9600);
-  #ifdef DEBUGWIFI
-
-  WiFi.begin(secret_ssid, secret_pass);
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-
-    Serial.println("Connecting to WiFi...");
-  }
-
-  // Set static IP, gateway, subnet, and DNS
-  WiFi.config(staticIP, gateway, subnet, dns);
-
-  Serial.println("WiFi connected with static IP: " +
-                 WiFi.localIP().toString());
-
-  MDNS.begin(HOST_NAME);
-
-  Debug.begin(HOST_NAME);
-  Debug.setResetCmdEnabled(true);
-
-  #endif // ifdef DEBUGWIFI
-
-
   myHub.init();
   TrainControl zug(myHub);
 }
 
 void loop()
 {
-  #ifdef DEBUGWIFI
-
-  Debug.handle();
-  #endif // ifdef DEBUGWIFI
-
   // put your main code here, to run repeatedly:
   // connect flow
   if (myHub.isConnecting())
