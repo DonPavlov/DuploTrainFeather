@@ -44,6 +44,11 @@ Please take a closer look inside the pcb folder.
 To open and edit install [Fritzing](https://fritzing.org/)
 
 
+## Debugging of Feather Boards
+Sometimes the ESP32-S3 Feather Board is not able to be flashed.
+Follow these steps for a possible solution.
+[Possible BugFix/Workaround](https://github.com/espressif/arduino-esp32/issues/8354#issuecomment-1669090415)
+
 ## License
 
 This project is licensed under the [Unlicense](LICENSE).

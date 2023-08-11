@@ -98,19 +98,20 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage
                                    // level)
-
-  sleep(3);
-  Serial.begin(115200);
-  matrix.begin(0x70);     // Init I2C Display
-  strip.begin();          // Init LED Strip
-  strip.setBrightness(4); // lower brightness for toddlers
+  matrix.begin(0x70);              // Init I2C Display
+  strip.begin();                   // Init LED Strip
+  strip.setBrightness(4);          // lower brightness for toddlers
   uint32_t magenta = strip.Color(255, 0, 255);
-
   strip.fill(strip.Color(255, 0, 255), 0, N_LEDS);
-  strip.show(); // Initialize all pixels to 'off'
+  strip.show();                    // Initialize all pixels to 'off'
 
   myHub.init();
-  TrainControl zug(myHub);
+  TrainControl   zug(myHub);
+  static uint8_t number = 0;
+  matrix.print("1234");
+  matrix.writeDisplay();
+  sleep(1);
+  Serial.begin(115200);
   digitalWrite(LED_BUILTIN, LOW); // turn the LED on (HIGH is the voltage level)
 }
 
@@ -146,10 +147,27 @@ void loop()
       Serial.println("Failed to connect to Duplo Hub");
     }
   }
-  sleep(1);
 
-  static uint8_t number = 0;
-  matrix.print(number, DEC);
-  matrix.writeDisplay();
-  number++;
+
+  rainbowCycle(20); // Call the rainbowCycle function with a delay of 20ms
+}
+
+// Rainbow cycle function
+void rainbowCycle(int delayTime)
+{
+  int totalSteps = 255 * 5; // 5 cycles of all colors on wheel
+
+  for (int step = 0; step < totalSteps; step++)
+  {
+    int colorIndex = map(step % totalSteps, 0, totalSteps, 0, 255);
+    strip.setBrightness(4);
+
+    for (int i = 0; i < strip.numPixels(); i++)
+    {
+      int pixelHue = colorIndex + (i * 65536L / strip.numPixels());
+      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
+    }
+    strip.show();
+    delay(delayTime);
+  }
 }
