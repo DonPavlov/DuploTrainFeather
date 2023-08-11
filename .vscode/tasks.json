@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "command": "platformio run -t nobuild -t upload --disable-auto-clean --upload-port COM4",
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "label": "Upload No Build",
+            "options": {
+                "env": {"PATH": "C:/Users/paulh/.platformio/penv/Scripts"}
+            }
+        }
+        {
+            "type": "shell",
+            "command": "platformio device list",
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "label": "Device List",
+            "options": {
+                "env": {"PATH": "C:/Users/paulh/.platformio/penv/Scripts"}
+            }
+        }   
+     ]
+}

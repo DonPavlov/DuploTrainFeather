@@ -7,6 +7,7 @@
 #include "Lpf2Hub.h"
 #include "Adafruit_LEDBackpack.h"
 #include "Adafruit_NeoPixel.h"
+#include <Adafruit_GFX.h>
 
 #define ARCADE_N (18)
 #define ARCADE_S (16)
@@ -94,15 +95,23 @@ void setup()
   // Never delete this delay, this ensures the device can be reflashed without
   // issues. Else hardreset with esptool and lucky timing while sending factory
   // reset command and reseting the device
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage
+                                   // level)
+
   sleep(3);
   Serial.begin(115200);
   matrix.begin(0x70);     // Init I2C Display
   strip.begin();          // Init LED Strip
-  strip.setBrightness(1); // lower brightness for toddlers
-  strip.show();           // Initialize all pixels to 'off'
+  strip.setBrightness(4); // lower brightness for toddlers
+  uint32_t magenta = strip.Color(255, 0, 255);
+
+  strip.fill(strip.Color(255, 0, 255), 0, N_LEDS);
+  strip.show(); // Initialize all pixels to 'off'
 
   myHub.init();
   TrainControl zug(myHub);
+  digitalWrite(LED_BUILTIN, LOW); // turn the LED on (HIGH is the voltage level)
 }
 
 void loop()
@@ -143,20 +152,4 @@ void loop()
   matrix.print(number, DEC);
   matrix.writeDisplay();
   number++;
-  chase(strip.Color(255, 0, 0));
-  delay(100);
-  chase(strip.Color(0, 255, 0));
-  delay(100);
-  chase(strip.Color(0, 0, 255));
-}
-
-void chase(uint32_t c)
-{
-  for (uint16_t i = 0; i < strip.numPixels() + 4; i++)
-  {
-    strip.setPixelColor(i,     c); // Draw new pixel
-    strip.setPixelColor(i - 4, 0); // Erase pixel a few steps back
-    strip.show();
-    delay(30);
-  }
 }
