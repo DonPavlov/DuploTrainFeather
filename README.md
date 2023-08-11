@@ -1,6 +1,6 @@
 # Duplo Train Controller with ESP32-S3 Feather
 
-![Project Image](photos\top-image.jpg)
+![Project Image](photos/top-image.jpg)
 
 This repository contains the code and resources for the 4th iteration of a Duplo train controller built using an ESP32-S3 Feather board. This iteration represents a culmination of learnings from previous iterations and offers enhanced features for controlling a Duplo train wirelessly via Bluetooth. The project features arcade buttons, a joystick, switches, LED indicators, an I2C 4-digit display, a Neopixel 16-pixel ring, and more, all integrated into a customized box.
 
@@ -35,7 +35,7 @@ The current 4th iteration builds upon lessons learned from previous versions. Th
 
 1. Get a Box to hold everything.
 2. Get Arcade Buttons, leds, ESP32-S3 Feather board, MCP23017 Board, LiPo Battery, Neopixel Ring, Joystick, Toggle Switches and Copper-perfboard.
-3. Follow the detailed wiring instructions and diagrams provided in the PCB Folder[<img src="image.png" width="250"/>](pcb\duplo-train-feather.png) 
+3. Follow the detailed wiring instructions and diagrams provided in the PCB Folder[<img src="image.png" width="250"/>](pcb/duplo-train-feather.png) 
 4. Upload the provided code to your ESP32-S3 Feather board using the Arduino IDE or PlatformIO.
 
 ## Wiring Diagram
