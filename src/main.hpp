@@ -4,4 +4,7 @@
 
 void rainbowCycle(int delayTime);
 
+void test_inputs();
+
+
 #endif  // MAIN_HPP

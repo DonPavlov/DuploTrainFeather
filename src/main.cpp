@@ -8,21 +8,25 @@
 #include "Adafruit_LEDBackpack.h"
 #include "Adafruit_NeoPixel.h"
 #include <Adafruit_GFX.h>
+#include "light_strip.hpp"
+
+#include <Adafruit_MCP23X17.h>
+
 
 #define ARCADE_N (18)
 #define ARCADE_S (16)
 #define ARCADE_W (17)
 #define ARCADE_E (15)
 
-#define NEOPIXEL_RING (6)
-#define N_LEDS (16)
+unsigned long startMillis;         // some global variables available anywhere in
+                                   // the program
+unsigned long currentMillis;
+const unsigned long period = 2000; // the value is a number of milliseconds
 
 Lpf2Hub myHub;
 byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
+LightStrip myStrip; // Create an instance of the LightStrip class
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS,
-                                            NEOPIXEL_RING,
-                                            NEO_GRB + NEO_KHZ800);
 Adafruit_7segment matrix = Adafruit_7segment();
 
 void colorSensorCallback(void      *hub,
@@ -58,7 +62,6 @@ void colorSensorCallback(void      *hub,
 //                                byte       portNumber,
 //                                DeviceType deviceType,
 //                                uint8_t   *pData);
-
 void speedometerSensorCallback(void      *hub,
                                byte       portNumber,
                                DeviceType deviceType,
@@ -92,33 +95,45 @@ void speedometerSensorCallback(void      *hub,
 
 void setup()
 {
-  // Never delete this delay, this ensures the device can be reflashed without
-  // issues. Else hardreset with esptool and lucky timing while sending factory
-  // reset command and reseting the device
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage
                                    // level)
   matrix.begin(0x70);              // Init I2C Display
-  strip.begin();                   // Init LED Strip
-  strip.setBrightness(4);          // lower brightness for toddlers
-  uint32_t magenta = strip.Color(255, 0, 255);
-  strip.fill(strip.Color(255, 0, 255), 0, N_LEDS);
-  strip.show();                    // Initialize all pixels to 'off'
 
   myHub.init();
   TrainControl   zug(myHub);
   static uint8_t number = 0;
   matrix.print("1234");
   matrix.writeDisplay();
-  sleep(1);
+  myStrip.initialize();
+
+  // Never delete this delay, this ensures the device can be reflashed without
+  // issues. Else hardreset with esptool and lucky timing while sending factory
+  // reset command and reseting the device
+  sleep(2);
   Serial.begin(115200);
-  digitalWrite(LED_BUILTIN, LOW); // turn the LED on (HIGH is the voltage level)
+  digitalWrite(LED_BUILTIN, LOW); // turn the LED off
+  startMillis = millis();         // initial start time
 }
 
 void loop()
 {
   // put your main code here, to run repeatedly:
   // connect flow
+
+  currentMillis = millis();
+
+  if (currentMillis - startMillis >= period) // test whether the period has
+                                             // elapsed
+  {
+    myStrip.rainbow(true);
+    startMillis = currentMillis;             // IMPORTANT to save the start
+                                             // time of the current LED
+                                             // state.
+  }
+
+  Serial.println("Rainbow ");
+
   if (myHub.isConnecting())
   {
     myHub.connectHub();
@@ -146,28 +161,5 @@ void loop()
     {
       Serial.println("Failed to connect to Duplo Hub");
     }
-  }
-
-
-  rainbowCycle(20); // Call the rainbowCycle function with a delay of 20ms
-}
-
-// Rainbow cycle function
-void rainbowCycle(int delayTime)
-{
-  int totalSteps = 255 * 5; // 5 cycles of all colors on wheel
-
-  for (int step = 0; step < totalSteps; step++)
-  {
-    int colorIndex = map(step % totalSteps, 0, totalSteps, 0, 255);
-    strip.setBrightness(4);
-
-    for (int i = 0; i < strip.numPixels(); i++)
-    {
-      int pixelHue = colorIndex + (i * 65536L / strip.numPixels());
-      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
-    }
-    strip.show();
-    delay(delayTime);
   }
 }
