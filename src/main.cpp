@@ -17,6 +17,8 @@
 #define ARCADE_S (15)
 #define ARCADE_W (14)
 #define ARCADE_E (8)
+#define RXD1 (18)
+#define TXD1 (17)
 
 unsigned long startMillis;         // some global variables available anywhere in
                                    // the program
@@ -29,7 +31,6 @@ LightStrip myStrip; // Create an instance of the LightStrip class
 
 Adafruit_7segment matrix = Adafruit_7segment();
 Adafruit_MCP23X17 mcp;
-
 void colorSensorCallback(void      *hub,
                          byte       portNumber,
                          DeviceType deviceType,
@@ -40,8 +41,8 @@ void colorSensorCallback(void      *hub,
   if (deviceType == DeviceType::DUPLO_TRAIN_BASE_COLOR_SENSOR)
   {
     int color = myHub->parseColor(pData);
-    Serial.print("Color: ");
-    Serial.println(COLOR_STRING[color]);
+    Serial1.print("Color: ");
+    Serial1.println(COLOR_STRING[color]);
     myHub->setLedColor((Color)color);
 
     if (color == (byte)RED)
@@ -73,22 +74,22 @@ void speedometerSensorCallback(void      *hub,
   if (deviceType == DeviceType::DUPLO_TRAIN_BASE_SPEEDOMETER)
   {
     int speed = myHub->parseSpeedometer(pData);
-    Serial.print("Speed: ");
-    Serial.println(speed);
+    Serial1.print("Speed: ");
+    Serial1.println(speed);
 
     if (speed > 10)
     {
-      Serial.println("Forward");
+      Serial1.println("Forward");
       myHub->setBasicMotorSpeed(motorPort, 50);
     }
     else if (speed < -10)
     {
-      Serial.println("Back");
+      Serial1.println("Back");
       myHub->setBasicMotorSpeed(motorPort, -50);
     }
     else
     {
-      Serial.println("Stop");
+      Serial1.println("Stop");
       myHub->stopBasicMotor(motorPort);
     }
   }
@@ -97,10 +98,18 @@ void speedometerSensorCallback(void      *hub,
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
+  Serial1.begin(115200, SERIAL_8N1, RXD1, TXD1);
 
   // Set ESP32 pins 5 and 9 as INPUT_PULLUP
-  pinMode(5,           INPUT_PULLUP);
-  pinMode(9,           INPUT_PULLUP);
+  pinMode(5,        INPUT_PULLUP); // make sure pins don't die, they are connected to the lvl shifter
+  pinMode(9,        INPUT_PULLUP); // make sure pins don't die, they are connected to the lvl shifter
+
+  // Set the inputs for
+  pinMode(ARCADE_N, INPUT_PULLUP);
+  pinMode(ARCADE_S, INPUT_PULLUP);
+  pinMode(ARCADE_W, INPUT_PULLUP);
+  pinMode(ARCADE_E, INPUT_PULLUP);
+
   digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage
                                    // level)
   matrix.begin(0x70);              // Init I2C Display
@@ -115,8 +124,8 @@ void setup()
   // Never delete this delay, this ensures the device can be reflashed without
   // issues. Else hardreset with esptool and lucky timing while sending factory
   // reset command and reseting the device
-  sleep(2);
-  Serial.begin(115200);
+  // sleep(2);
+  // Serial.begin(115200);
   digitalWrite(LED_BUILTIN, LOW); // turn the LED off
   startMillis = millis();         // initial start time
 
@@ -124,7 +133,7 @@ void setup()
   if (!mcp.begin_I2C())
   {
     // if (!mcp.begin_SPI(CS_PIN)) {
-    Serial.println("Error.");
+    Serial1.println("Error.");
 
     while (1)
       ;
@@ -165,7 +174,7 @@ void loop()
 
     if (myHub.isConnected())
     {
-      Serial.println("Connected to Duplo Hub");
+      Serial1.println("Connected to Duplo Hub");
 
       delay(200);
 
@@ -184,7 +193,7 @@ void loop()
     }
     else
     {
-      Serial.println("Failed to connect to Duplo Hub");
+      Serial1.println("Failed to connect to Duplo Hub");
     }
   }
   test_inputs();
@@ -195,27 +204,32 @@ void test_inputs()
   for (int i = 0; i < 6; i++)
   {
     int inputValue = mcp.digitalRead(i);
-    Serial.print("Input ");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.println(inputValue);
+    Serial1.print("Input ");
+    Serial1.print(i);
+    Serial1.print(": ");
+    Serial1.println(inputValue);
   }
 
   // Read ESP32 pins 5 and 9 and print their values
-  int esp32Input5 = digitalRead(5);
-  int esp32Input9 = digitalRead(9);
+  int arcade_n_input = digitalRead(ARCADE_N);
+  int arcade_s_input = digitalRead(ARCADE_S);
+  int arcade_w_input = digitalRead(ARCADE_W);
+  int arcade_e_input = digitalRead(ARCADE_E);
 
-  Serial.print("ESP32 Pin 5: ");
-  Serial.println(esp32Input5);
-
-  Serial.print("ESP32 Pin 9: ");
-  Serial.println(esp32Input9);
+  Serial1.print("ARCADE_N: ");
+  Serial1.println(arcade_n_input);
+  Serial1.print("ARCADE_S: ");
+  Serial1.println(arcade_s_input);
+  Serial1.print("ARCADE_W: ");
+  Serial1.println(arcade_w_input);
+  Serial1.print("ARCADE_E: ");
+  Serial1.println(arcade_e_input);
 
   // Enable and disable LEDs sequentially with a half-second delay
   for (int i = 13; i >= 8; i--)
   {
     mcp.digitalWrite(i, HIGH); // Turn on LED
-    delay(500);                // Wait for 500 milliseconds
+    delay(100);                // Wait for 100 milliseconds
     mcp.digitalWrite(i, LOW);  // Turn off LED
   }
 }
