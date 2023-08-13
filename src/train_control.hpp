@@ -1,3 +1,5 @@
+#pragma once
+
 // Train Control class implements ControlInterface.hpp
 #include "ControlInterface.hpp"
 #include "Lpf2Hub.h"
@@ -10,14 +12,15 @@ class TrainControl : public ControlInterface {
 
 public:
 
-  TrainControl(Lpf2Hub hub);
+  TrainControl();
   ~TrainControl() = default;
 
   bool SendCommand(Commands::Commands cmd) override;
   bool SendSpeed(Commands::Commands cmd,
                  int8_t             speed) override;
 
-private:
 
-  Lpf2Hub m_hub;
+  void stateMachine();
+
+private:
 };
