@@ -19,7 +19,7 @@ public:
   bool SendSpeed(Commands::Commands cmd,
                  int8_t             speed) override;
 
-
+  void init();
   void stateMachine();
 
 private:

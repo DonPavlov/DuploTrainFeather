@@ -3,11 +3,15 @@
 
 Lpf2Hub mHub;
 
-byte mPort = (byte)DuploTrainHubPort::MOTOR;
 
 TrainControl::TrainControl()
 {
   // TODO init the bluetooth train interface
+  Serial1.println("Setup Train Control files");
+}
+
+void TrainControl::init()
+{
   mHub.init();
 }
 
@@ -65,7 +69,8 @@ void speedometerSensorCb(void      *hub,
                          DeviceType deviceType,
                          uint8_t   *pData)
 {
-  Lpf2Hub *mHub = (Lpf2Hub *)hub;
+  Lpf2Hub *mHub  = (Lpf2Hub *)hub;
+  byte     mPort = (byte)DuploTrainHubPort::MOTOR;
 
   if (deviceType == DeviceType::DUPLO_TRAIN_BASE_SPEEDOMETER)
   {
@@ -93,7 +98,7 @@ void speedometerSensorCb(void      *hub,
 
 void TrainControl::stateMachine()
 {
-  Serial1.print("Test");
+  Serial1.println("Test TrainControlLib");
 
   if (mHub.isConnecting())
   {

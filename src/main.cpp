@@ -2,7 +2,7 @@
 #include <cstring>
 #include <string>
 
-// #include "train_control.hpp"
+#include "train_control.hpp"
 #include "buttons.hpp"
 #include "Lpf2Hub.h"
 #include "Adafruit_LEDBackpack.h"
@@ -45,14 +45,12 @@ const unsigned long wifi_timeout = 10000;
 bool wifiConSkipped              = false;
 bool wifiSetupfinished           = false;
 
-Lpf2Hub myHub;
-byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
 
 LightStrip myStrip; // Create an instance of the LightStrip class
 
 Adafruit_7segment matrix = Adafruit_7segment();
 Adafruit_MCP23X17 mcp;
-
+TrainControl zug;
 
 void setup()
 {
@@ -74,18 +72,11 @@ void setup()
   matrix.begin(0x70);              // Init I2C Display
 
 
-  myHub.init();
-
   static uint8_t number = 0;
   matrix.print("1234");
   matrix.writeDisplay();
   myStrip.initialize();
 
-  // Never delete this delay, this ensures the device can be reflashed without
-  // issues. Else hardreset with esptool and lucky timing while sending factory
-  // reset command and reseting the device
-  // sleep(2);
-  // Serial1.begin(115200);
   digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
   startMillis = wifiMillis = millis(); // initial start time
 
@@ -117,14 +108,11 @@ void setup()
     Serial1.println("STA Failed to configure");
   }
   WiFi.begin(ssid, password);
+  zug.init();
 }
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
-  // connect flow
-  // static TrainControl zug;
-
   currentMillis = millis();
 
   // Skip wifi part if not connected
@@ -202,36 +190,7 @@ void loop()
                                              // state.
     // zug.stateMachine();
     Serial1.println(".");
-
-    if (myHub.isConnecting())
-    {
-      myHub.connectHub();
-      Serial1.println("Connecting...");
-
-      if (myHub.isConnected())
-      {
-        Serial1.println("Connected to Duplo Hub");
-
-        delay(200);
-        delay(200);
-
-        // connect speed sensor and activate it for updates
-        myHub.activatePortDevice((byte)DuploTrainHubPort::SPEEDOMETER,
-                                 speedometerSensorCallback);
-        delay(200);
-
-        // connect color sensor and activate it for updates
-        // // connect speed sensor and activate it for updates
-        myHub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
-                                 colorSensorCallback);
-        delay(200);
-        myHub.setLedColor(GREEN);
-      }
-      else
-      {
-        Serial1.println("Failed to connect to Duplo Hub");
-      }
-    }
+    zug.stateMachine();
   }
 
   // test_inputs();
@@ -269,69 +228,5 @@ void test_inputs()
     mcp.digitalWrite(i, HIGH); // Turn on LED
     delay(100);                // Wait for 100 milliseconds
     mcp.digitalWrite(i, LOW);  // Turn off LED
-  }
-}
-
-void colorSensorCallback(void      *hub,
-                         byte       portNumber,
-                         DeviceType deviceType,
-                         uint8_t   *pData)
-{
-  Lpf2Hub *myHub = (Lpf2Hub *)hub;
-
-  if (deviceType == DeviceType::DUPLO_TRAIN_BASE_COLOR_SENSOR)
-  {
-    int color = myHub->parseColor(pData);
-    Serial1.print("Color: ");
-    Serial1.println(COLOR_STRING[color]);
-    myHub->setLedColor((Color)color);
-
-    if (color == (byte)RED)
-    {
-      myHub->playSound((byte)DuploTrainBaseSound::BRAKE);
-    }
-    else if (color == (byte)BLUE)
-    {
-      myHub->playSound((byte)DuploTrainBaseSound::WATER_REFILL);
-    }
-    else if (color == (byte)YELLOW)
-    {
-      myHub->playSound((byte)DuploTrainBaseSound::HORN);
-    }
-  }
-}
-
-// void speedometerSensorCallback(void      *hub,
-//                                byte       portNumber,
-//                                DeviceType deviceType,
-//                                uint8_t   *pData);
-void speedometerSensorCallback(void      *hub,
-                               byte       portNumber,
-                               DeviceType deviceType,
-                               uint8_t   *pData)
-{
-  Lpf2Hub *myHub = (Lpf2Hub *)hub;
-
-  if (deviceType == DeviceType::DUPLO_TRAIN_BASE_SPEEDOMETER)
-  {
-    int speed = myHub->parseSpeedometer(pData);
-    Serial1.print("Speed: ");
-    Serial1.println(speed);
-
-    if (speed > 10)
-    {
-      Serial1.println("Forward");
-      myHub->setBasicMotorSpeed(motorPort, 50);
-    }
-    else if (speed < -10)
-    {
-      Serial1.println("Back");
-      myHub->setBasicMotorSpeed(motorPort, -50);
-    }
-    else
-    {
-      Serial1.println("Stop");
-      myHub->stopBasicMotor(motorPort);
-    }
   }
 }
