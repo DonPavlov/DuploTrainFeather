@@ -190,8 +190,8 @@ void loop()
                                              // state.
     // zug.stateMachine();
     Serial1.println(".");
-    zug.stateMachine();
   }
+  zug.stateMachine();
 
   // test_inputs();
 }

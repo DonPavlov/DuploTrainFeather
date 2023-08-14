@@ -1,8 +1,10 @@
 #include "train_control.hpp"
 #include <Arduino.h>
+#include <cstdint>
 
 Lpf2Hub mHub;
 
+int8_t g_speed = 0;
 
 TrainControl::TrainControl()
 {}
@@ -75,16 +77,19 @@ void speedometerSensorCb(void      *hub,
     if (speed > 10)
     {
       Serial1.println("Forward");
-      mHub->setBasicMotorSpeed(mPort, 50);
+      g_speed = 100;
+      mHub->setBasicMotorSpeed(mPort, g_speed);
     }
     else if (speed < -10)
     {
       Serial1.println("Back");
-      mHub->setBasicMotorSpeed(mPort, -50);
+      g_speed = -100;
+      mHub->setBasicMotorSpeed(mPort, g_speed);
     }
     else
     {
       Serial1.println("Stop");
+      g_speed = 0;
       mHub->stopBasicMotor(mPort);
     }
   }
@@ -121,4 +126,33 @@ void TrainControl::stateMachine()
       Serial1.println("Failed to connect to Duplo Hub");
     }
   }
+}
+
+void TrainControl::increase_speed()
+{
+  g_speed += 10;
+
+  if (g_speed > 100)
+  {
+    g_speed = 100;
+  }
+  else if (g_speed < -100)
+  {
+    g_speed = -100;
+  }
+}
+
+void TrainControl::decrease_speed()
+{
+  g_speed -= 10;
+
+  if ((g_speed < 10) && (g_speed > -10))
+  {
+    g_speed = 0;
+  }
+}
+
+int8_t TrainControl::get_speed()
+{
+  return g_speed;
 }
