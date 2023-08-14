@@ -33,13 +33,17 @@ IPAddress local_IP(192, 168, 178, 123);
 IPAddress gateway(192, 168, 178, 1);
 
 IPAddress subnet(255, 255, 255, 0);
-IPAddress primaryDNS(8, 8, 8, 8);   // optional
-IPAddress secondaryDNS(8, 8, 4, 4); // optional
+IPAddress primaryDNS(8, 8, 8, 8);        // optional
+IPAddress secondaryDNS(8, 8, 4, 4);      // optional
 
-unsigned long startMillis;          // some global variables available anywhere in
-                                    // the program
+unsigned long startMillis;               // some global variables available anywhere in
+                                         // the program
 unsigned long currentMillis;
-const unsigned long period = 2000;  // the value is a number of milliseconds
+unsigned long wifiMillis;
+const unsigned long period       = 2000; // the value is a number of milliseconds
+const unsigned long wifi_timeout = 10000;
+bool wifiConSkipped              = false;
+bool wifiSetupfinished           = false;
 
 Lpf2Hub myHub;
 byte    motorPort = (byte)DuploTrainHubPort::MOTOR;
@@ -69,6 +73,7 @@ void setup()
                                    // level)
   matrix.begin(0x70);              // Init I2C Display
 
+
   myHub.init();
 
   static uint8_t number = 0;
@@ -80,9 +85,9 @@ void setup()
   // issues. Else hardreset with esptool and lucky timing while sending factory
   // reset command and reseting the device
   // sleep(2);
-  // Serial.begin(115200);
-  digitalWrite(LED_BUILTIN, LOW); // turn the LED off
-  startMillis = millis();         // initial start time
+  // Serial1.begin(115200);
+  digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
+  startMillis = wifiMillis = millis(); // initial start time
 
   // configure buttons
   if (!mcp.begin_I2C())
@@ -105,6 +110,13 @@ void setup()
   {
     mcp.pinMode(i, OUTPUT);
   }
+
+  // Init wifi for ota updates
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    Serial1.println("STA Failed to configure");
+  }
+  WiFi.begin(ssid, password);
 }
 
 void loop()
@@ -115,14 +127,82 @@ void loop()
 
   currentMillis = millis();
 
-  if (currentMillis - startMillis >= period) // test whether the period has
-                                             // elapsed
+  // Skip wifi part if not connected
+  if (!wifiConSkipped)
+  {
+    // Connect to wifi If not already connected
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+      Serial1.print(".");
+
+      if (currentMillis - wifiMillis >= wifi_timeout)
+      {
+        wifiConSkipped = true;
+        wifiMillis     = currentMillis;
+      }
+    }
+
+    // If connected to Wifi and wifi setup not yet finished Setup arduino ota
+    else if ((WiFi.waitForConnectResult() != WL_CONNECTED)
+             && (!wifiSetupfinished))
+    {
+      ArduinoOTA
+      .onStart([]() {
+        String type;
+
+        if (ArduinoOTA.getCommand() == U_FLASH)
+          type = "sketch";
+        else // U_SPIFFS
+          type = "filesystem";
+
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        Serial1.println("Start updating " + type);
+      })
+      .onEnd([]() {
+        Serial1.println("\nEnd");
+      })
+      .onProgress([](unsigned int progress, unsigned int total) {
+        Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
+      })
+      .onError([](ota_error_t error) {
+        Serial1.printf("Error[%u]: ", error);
+
+        if (error == OTA_AUTH_ERROR)
+          Serial1.println("Auth Failed");
+        else if (error == OTA_BEGIN_ERROR)
+          Serial1.println("Begin Failed");
+        else if (error == OTA_CONNECT_ERROR)
+          Serial1.println("Connect Failed");
+        else if (error == OTA_RECEIVE_ERROR)
+          Serial1.println("Receive Failed");
+        else if (error == OTA_END_ERROR)
+          Serial1.println("End Failed");
+      });
+
+      ArduinoOTA.begin();
+
+      Serial1.println("Ready");
+      Serial1.print("IP address: ");
+      Serial1.println(WiFi.localIP());
+      wifiSetupfinished = true;
+    }
+
+    if (wifiSetupfinished)
+    {
+      Serial1.println("Handling ota");
+      ArduinoOTA.handle();
+    }
+  }
+
+
+  if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
     myStrip.rainbow(true);
     startMillis = currentMillis;             // IMPORTANT to save the start
                                              // time of the current LED
                                              // state.
     // zug.stateMachine();
+    Serial1.println(".");
 
     if (myHub.isConnecting())
     {
@@ -155,8 +235,7 @@ void loop()
     }
   }
 
-
-  test_inputs();
+  // test_inputs();
 }
 
 void test_inputs()
