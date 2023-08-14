@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TRAIN_CONTROL_HPP
+#define TRAIN_CONTROL_HPP
 
 // Train Control class implements ControlInterface.hpp
 #include "ControlInterface.hpp"
@@ -28,3 +29,5 @@ public:
 
 private:
 };
+
+#endif // ifndef TRAIN_CONTROL_HPP

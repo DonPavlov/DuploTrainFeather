@@ -9,6 +9,7 @@ int8_t g_speed = 0;
 TrainControl::TrainControl()
 {}
 
+
 void TrainControl::init()
 {
   Serial1.println("Setup Train Control");

@@ -5,7 +5,7 @@ namespace Commands
 {
   enum class Commands {
     Forward   = 0x0,
-    Backwards = 0x1,
+    Backward  = 0x1,
     Stop      = 0x2,
     Light     = 0x3,
     Refill    = 0x4,
