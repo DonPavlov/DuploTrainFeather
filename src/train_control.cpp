@@ -5,13 +5,11 @@ Lpf2Hub mHub;
 
 
 TrainControl::TrainControl()
-{
-  // TODO init the bluetooth train interface
-  Serial1.println("Setup Train Control files");
-}
+{}
 
 void TrainControl::init()
 {
+  Serial1.println("Setup Train Control");
   mHub.init();
 }
 
@@ -60,10 +58,6 @@ void colorSensorCb(void      *hub,
   }
 }
 
-// void speedometerSensorCallback(void      *hub,
-//                                byte       portNumber,
-//                                DeviceType deviceType,
-//                                uint8_t   *pData);
 void speedometerSensorCb(void      *hub,
                          byte       portNumber,
                          DeviceType deviceType,
@@ -98,8 +92,6 @@ void speedometerSensorCb(void      *hub,
 
 void TrainControl::stateMachine()
 {
-  Serial1.println("Test TrainControlLib");
-
   if (mHub.isConnecting())
   {
     mHub.connectHub();
