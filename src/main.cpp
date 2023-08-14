@@ -67,6 +67,8 @@ void setup()
 
 
   static uint8_t number = 0;
+
+  // TODO move into TrainControl
   matrix.print("1234");
   matrix.writeDisplay();
   myStrip.initialize();
