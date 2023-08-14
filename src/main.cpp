@@ -143,7 +143,7 @@ void loop()
     }
 
     // If connected to Wifi and wifi setup not yet finished Setup arduino ota
-    else if ((WiFi.waitForConnectResult() != WL_CONNECTED)
+    else if ((WiFi.waitForConnectResult() == WL_CONNECTED)
              && (!wifiSetupfinished))
     {
       ArduinoOTA
@@ -189,7 +189,6 @@ void loop()
 
     if (wifiSetupfinished)
     {
-      Serial1.println("Handling ota");
       ArduinoOTA.handle();
     }
   }
