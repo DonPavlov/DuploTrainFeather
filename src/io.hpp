@@ -2,15 +2,41 @@
 #define IO_HPP
 #include "commands.hpp"
 #include "train_control.hpp"
-#include <map>
+#include <unordered_map>
 #include <cstdint>
 #include <string>
 #include <Adafruit_MCP23X17.h>
 
-#define ARCADE_N (16)
-#define ARCADE_S (15)
-#define ARCADE_W (14)
-#define ARCADE_E (8)
+#define JOY_N (16)
+#define JOY_S (15)
+#define JOY_W (14)
+#define JOY_E (8)
+
+namespace btn
+{
+  struct ButtonData {
+    Commands::Commands command;
+    uint8_t            currentValue;
+    uint8_t            previousValue;
+
+    ButtonData() : command{Commands::Commands::Stop}, currentValue{1}, previousValue{1}
+    {}
+  };
+
+  enum class BtnNr {
+    BTN0,
+    BTN1,
+    BTN2,
+    BTN3,
+    BTN4,
+    BTN5,
+    BTN_J_N,
+    BTN_J_S,
+    BTN_J_W,
+    BTN_J_E,
+    MAX_BTN
+  };
+}
 
 class IO {
   /**
@@ -24,24 +50,12 @@ public:
 
   IO();
   ~IO() = default;
-  enum class BtnNr {
-    BTN0,
-    BTN1,
-    BTN2,
-    BTN3,
-    BTN4,
-    BTN5,
-    BTN_A_N,
-    BTN_A_S,
-    BTN_A_W,
-    BTN_A_E,
-    MAX_BTN
-  };
+
 
   void init_buttons();
 
   // Function to register a button to a specific function and parameters
-  void register_button(BtnNr              buttonNr,
+  void register_button(btn::BtnNr         buttonNr,
                        Commands::Commands command);
 
   void read_buttons();
@@ -52,8 +66,8 @@ private:
 
   TrainControl m_ctrl;
   bool ctrl_initalized { false };
-  std::map<BtnNr, Commands::Commands>m_buttons;
-  bool execute_command(BtnNr buttonNr);
+  std::unordered_map<btn::BtnNr, btn::ButtonData>m_buttonsData;
+  void execute_command(btn::BtnNr buttonNr);
   Adafruit_MCP23X17 mcp;
 };
 

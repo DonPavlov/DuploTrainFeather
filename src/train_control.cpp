@@ -20,7 +20,10 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
 {
   // TODO send something with the bluetooth train interface
   bool result = false;
+  char cstr[16] { 0 };
 
+  sprintf(cstr, "Command %d", static_cast<int>(cmd));
+  Serial1.println(cstr);
   return result;
 }
 

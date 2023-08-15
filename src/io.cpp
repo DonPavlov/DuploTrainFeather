@@ -2,6 +2,8 @@
 #include "commands.hpp"
 #include "Arduino.h"
 #include "Esp.h"
+#include <array>
+#include <string>
 
 //
 IO::IO()
@@ -12,10 +14,10 @@ IO::IO()
 void IO::init_buttons()
 {
   // Set the inputs for
-  pinMode(ARCADE_N, INPUT_PULLUP);
-  pinMode(ARCADE_S, INPUT_PULLUP);
-  pinMode(ARCADE_W, INPUT_PULLUP);
-  pinMode(ARCADE_E, INPUT_PULLUP);
+  pinMode(JOY_N, INPUT_PULLUP);
+  pinMode(JOY_S, INPUT_PULLUP);
+  pinMode(JOY_W, INPUT_PULLUP);
+  pinMode(JOY_E, INPUT_PULLUP);
 
   // configure IO
   if (!mcp.begin_I2C())
@@ -53,20 +55,26 @@ void IO::init_buttons()
 
   // Setup Pullup and Inputs
 
-  register_button(IO::BtnNr::BTN0,    Commands::Commands::Stop);
-  register_button(IO::BtnNr::BTN1,    Commands::Commands::Light);
-  register_button(IO::BtnNr::BTN2,    Commands::Commands::Refill);
-  register_button(IO::BtnNr::BTN3,    Commands::Commands::Horn);
-  register_button(IO::BtnNr::BTN4,    Commands::Commands::Steam);
-  register_button(IO::BtnNr::BTN5,    Commands::Commands::Departure);
-  register_button(IO::BtnNr::BTN_A_N, Commands::Commands::Forward);
-  register_button(IO::BtnNr::BTN_A_S, Commands::Commands::Backward);
+  register_button(btn::BtnNr::BTN0,    Commands::Commands::Stop);
+  register_button(btn::BtnNr::BTN1,    Commands::Commands::Light);
+  register_button(btn::BtnNr::BTN2,    Commands::Commands::Refill);
+  register_button(btn::BtnNr::BTN3,    Commands::Commands::Horn);
+  register_button(btn::BtnNr::BTN4,    Commands::Commands::Steam);
+  register_button(btn::BtnNr::BTN5,    Commands::Commands::Departure);
+  register_button(btn::BtnNr::BTN_J_N, Commands::Commands::Forward);
+  register_button(btn::BtnNr::BTN_J_S, Commands::Commands::Backward);
 }
 
 //
-void IO::register_button(BtnNr buttonNr, Commands::Commands command)
+void IO::register_button(btn::BtnNr buttonNr, Commands::Commands command)
 {
-  m_buttons.insert(std::pair<BtnNr, Commands::Commands>(buttonNr, command));
+  btn::ButtonData buttonData;
+
+  buttonData.command       = command;
+  buttonData.currentValue  = 1; // Initialize current value
+  buttonData.previousValue = 1; // Initialize previous value
+
+  m_buttonsData[buttonNr] = buttonData;
 }
 
 void IO::init_ctrl(TrainControl& ctrl)
@@ -77,55 +85,95 @@ void IO::init_ctrl(TrainControl& ctrl)
 //
 void IO::read_buttons()
 {
-  for (int i = 0; i < 6; i++)
-  {
-    int inputValue = mcp.digitalRead(i);
-    Serial1.print("Input ");
-    Serial1.print(i);
-    Serial1.print(": ");
+  uint8_t reg_A = mcp.readGPIOA();
 
-    Serial1.println(inputValue);
+  // split up into array
+  constexpr uint8_t arcade_button_nr = 6;
+  std::array<uint8_t, arcade_button_nr> arcade_buttons;
+
+  // Update arcade button data
+  for (size_t i = 0; i < arcade_button_nr; i++)
+  {
+    arcade_buttons[i] = (reg_A >> i) & 0x1;
+
+    btn::BtnNr buttonNr         = static_cast<btn::BtnNr>(i);
+    btn::ButtonData& buttonData = m_buttonsData[buttonNr];
+    buttonData.previousValue = buttonData.currentValue;
+    buttonData.currentValue  = arcade_buttons[i];
+
+    // Compare previous and current values and execute the command if needed
+    if ((buttonData.currentValue == LOW) && (buttonData.previousValue == HIGH))
+    {
+      execute_command(buttonNr);
+    }
   }
 
-  // Read ESP32 pins 5 and 9 and print their values
-  int arcade_n_input = digitalRead(ARCADE_N);
-  int arcade_s_input = digitalRead(ARCADE_S);
-  int arcade_w_input = digitalRead(ARCADE_W);
-  int arcade_e_input = digitalRead(ARCADE_E);
 
-  Serial1.print("ARCADE_N: ");
-  Serial1.println(arcade_n_input);
-  Serial1.print("ARCADE_S: ");
-  Serial1.println(arcade_s_input);
-  Serial1.print("ARCADE_W: ");
-  Serial1.println(arcade_w_input);
-  Serial1.print("ARCADE_E: ");
-  Serial1.println(arcade_e_input);
+  // Only one joystick is high at a time.
+  uint8_t joy_n_input = digitalRead(JOY_N);
+  uint8_t joy_s_input = digitalRead(JOY_S);
+  uint8_t joy_w_input = digitalRead(JOY_W);
+  uint8_t joy_e_input = digitalRead(JOY_E);
 
-  for (int i = 13; i >= 8; i--)
+  // Joystick button data
+  btn::BtnNr joystickButton = btn::BtnNr::MAX_BTN; // Default value for joystick button
+
+  // Update joystick button data
+  if (joy_n_input == LOW)
   {
-    mcp.digitalWrite(i, HIGH); // Turn on LED
-    delay(33);
+    joystickButton = btn::BtnNr::BTN_J_N;
+  }
+  else if (joy_s_input == LOW)
+  {
+    joystickButton = btn::BtnNr::BTN_J_S;
+  }
+  else if (joy_w_input == LOW)
+  {
+    joystickButton = btn::BtnNr::BTN_J_W;
+  }
+  else if (joy_e_input == LOW)
+  {
+    joystickButton = btn::BtnNr::BTN_J_E;
   }
 
-  for (int i = 13; i >= 8; i--)
+  // Reset other joystick button values
+  for (size_t i = static_cast<int>(btn::BtnNr::BTN_J_N); i < static_cast<int>(btn::BtnNr::MAX_BTN); i++)
   {
-    mcp.digitalWrite(i, LOW); // Turn off LED
-    delay(33);
+    btn::BtnNr buttonNr         = static_cast<btn::BtnNr>(i);
+    btn::ButtonData& buttonData = m_buttonsData[buttonNr];
+    buttonData.previousValue = buttonData.currentValue;
+
+    if (buttonNr != joystickButton)
+    {
+      buttonData.currentValue = HIGH;
+    }
+    else
+    {
+      buttonData.currentValue = LOW;
+    }
+
+    // Compare previous and current values and execute the command if needed
+    if ((buttonData.currentValue == LOW) && (buttonData.previousValue == HIGH))
+    {
+      execute_command(buttonNr);
+    }
   }
 }
 
-bool IO::execute_command(BtnNr buttonNr)
+void IO::execute_command(btn::BtnNr buttonNr)
 {
   // iterate over m_buttons and if the button matches execute the command saved
-  // in the map
-  for (auto& button : m_buttons)
-  {
-    if (button.first == buttonNr)
-    {
-      m_ctrl.SendCommand(button.second);
-      return true;
-    }
-  }
-  return false;
+  // in the map Find is saver if data is not inside of map
+  // auto it = m_buttonsData.find(buttonNr);
+
+  // if (it != m_buttonsData.end())
+  // {
+  //   btn::ButtonData& buttonData = it->second;
+  //   m_ctrl.SendCommand(buttonData.command);
+  //   return true;
+  // }
+  // return false;
+  btn::ButtonData& buttonData = m_buttonsData[buttonNr];
+
+  m_ctrl.SendCommand(buttonData.command);
 }
