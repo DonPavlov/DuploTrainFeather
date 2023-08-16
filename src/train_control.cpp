@@ -18,12 +18,123 @@ void TrainControl::init()
 
 bool TrainControl::SendCommand(Commands::Commands cmd)
 {
-  // TODO send something with the bluetooth train interface
-  bool result = false;
+  bool result = true;
   char cstr[16] { 0 };
+  byte mPort = (byte)DuploTrainHubPort::MOTOR;
+
 
   sprintf(cstr, "Command %d", static_cast<int>(cmd));
   Serial1.println(cstr);
+  bool execute { false };
+  static unsigned long executionTimeMillis{ 0 };
+  unsigned long curMil = millis();
+  static unsigned long prevMil { 0 };
+
+  if (curMil > (prevMil + executionTimeMillis))
+  {
+    execute = true;
+  }
+
+  switch (cmd)
+  {
+  case Commands::Commands::Forward:
+
+    if (0 == g_speed)
+    {
+      g_speed = 50;
+    }
+
+    mHub.setBasicMotorSpeed(mPort, g_speed);
+
+    break;
+
+  case Commands::Commands::Backward:
+
+    if (0 == g_speed)
+    {
+      g_speed = -50;
+    }
+
+    mHub.setBasicMotorSpeed(mPort, g_speed);
+    break;
+
+  case Commands::Commands::Faster:
+
+    increase_speed();
+
+    mHub.setBasicMotorSpeed(mPort, g_speed);
+    break;
+
+  case Commands::Commands::Slower:
+
+    decrease_speed();
+
+    mHub.setBasicMotorSpeed(mPort, g_speed);
+    break;
+
+  case Commands::Commands::Stop:
+
+    if (execute)
+    {
+      mHub.playSound((byte)DuploTrainBaseSound::BRAKE);
+      prevMil             = curMil;
+      executionTimeMillis = 500;
+    }
+    else
+      result = false;
+    break;
+
+  case Commands::Commands::Horn:
+
+    if (execute)
+    {
+      mHub.playSound((byte)DuploTrainBaseSound::HORN);
+      prevMil             = curMil;
+      executionTimeMillis = 500;
+    }
+    else
+      result = false;
+    break;
+
+  case Commands::Commands::Light:
+    static Color test { Color::PINK };
+
+    // uint8_t tempColor = (static_cast<uint8_t>(test))++;
+    // test = static_cast<Color>(tempColor);
+
+    mHub.setLedColor(test);
+    break;
+
+  case Commands::Commands::Refill:
+
+    if (execute)
+    {
+      mHub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
+      prevMil             = curMil;
+      executionTimeMillis = 500;
+    }
+    else
+      result = false;
+    break;
+
+  case Commands::Commands::Steam:
+
+    if (execute)
+    {
+      mHub.playSound((byte)DuploTrainBaseSound::STEAM);
+      prevMil             = curMil;
+      executionTimeMillis = 500;
+    }
+    else
+      result = false;
+    break;
+
+  default:
+    executionTimeMillis = 0;
+    break;
+  }
+
+  //
   return result;
 }
 
@@ -81,13 +192,21 @@ void speedometerSensorCb(void      *hub,
     if (speed > 10)
     {
       Serial1.println("Forward");
-      g_speed = 100;
+
+      if (g_speed <= 0)
+      {
+        g_speed = 50;
+      }
       mHub->setBasicMotorSpeed(mPort, g_speed);
     }
     else if (speed < -10)
     {
+      if (g_speed >= 0)
+      {
+        g_speed = -50;
+      }
       Serial1.println("Back");
-      g_speed = -100;
+
       mHub->setBasicMotorSpeed(mPort, g_speed);
     }
     else

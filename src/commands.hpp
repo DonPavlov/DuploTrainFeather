@@ -12,7 +12,9 @@ namespace Commands
     Horn      = 0x5,
     Steam     = 0x6,
     Departure = 0x7,
-    None      = 0x8
+    Faster    = 0x8,
+    Slower    = 0x9,
+    None      = 0x10
   };
 }
 

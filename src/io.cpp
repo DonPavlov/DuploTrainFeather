@@ -63,6 +63,8 @@ void IO::init_buttons()
   register_button(btn::BtnNr::BTN5,    Commands::Commands::Departure);
   register_button(btn::BtnNr::BTN_J_N, Commands::Commands::Forward);
   register_button(btn::BtnNr::BTN_J_S, Commands::Commands::Backward);
+  register_button(btn::BtnNr::BTN_J_W, Commands::Commands::Faster);
+  register_button(btn::BtnNr::BTN_J_E, Commands::Commands::Slower);
 }
 
 //
