@@ -49,6 +49,14 @@ Sometimes the ESP32-S3 Feather Board is not able to be flashed.
 Follow these steps for a possible solution.
 [Possible BugFix/Workaround](https://github.com/espressif/arduino-esp32/issues/8354#issuecomment-1669090415)
 
+# Currently working solution
+Upload via OTA, if that fails.
+* Press Boot
+* Press Reset
+* Release Reset
+* Release Boot
+Flash again at correct COM4.
+
 ## License
 
 This project is licensed under the [Unlicense](LICENSE).
