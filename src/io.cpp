@@ -84,7 +84,7 @@ void IO::init_ctrl(TrainControl& ctrl)
   m_ctrl = ctrl;
 }
 
-//
+// TODO add button lighting to do something, while each button is pressed enable LED.
 void IO::read_buttons()
 {
   uint8_t reg_A = mcp.readGPIOA();
@@ -107,6 +107,21 @@ void IO::read_buttons()
     if ((buttonData.currentValue == LOW) && (buttonData.previousValue == HIGH))
     {
       execute_command(buttonNr);
+    }
+
+    // TODO add button lighting to do something
+    // While each button is pressed, enable LED
+    if (buttonData.currentValue == LOW)
+    {
+      // Implement your LED lighting logic here
+      // For example:
+      // turn_on_led(buttonNr);
+    }
+    else
+    {
+      // Implement your LED turn-off logic here
+      // For example:
+      // turn_off_led(buttonNr);
     }
   }
 

@@ -22,6 +22,7 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
   char cstr[16] = { 0 };
   byte mPort    = (byte)DuploTrainHubPort::MOTOR;
 
+  // TODO Include magic enum and convert enum name of cmd to String
   sprintf(cstr, "Command %d", static_cast<int>(cmd));
   Serial1.println(cstr);
 
@@ -31,6 +32,7 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
 
   bool execute = curMil > (prevMil + executionTimeMillis);
 
+  // TODO test all buttons and assign apropriate values so all do something
   switch (cmd)
   {
   case Commands::Commands::Forward:
