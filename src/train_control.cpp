@@ -18,22 +18,18 @@ void TrainControl::init()
 
 bool TrainControl::SendCommand(Commands::Commands cmd)
 {
-  bool result = true;
-  char cstr[16] { 0 };
-  byte mPort = (byte)DuploTrainHubPort::MOTOR;
-
+  bool result   = true;
+  char cstr[16] = { 0 };
+  byte mPort    = (byte)DuploTrainHubPort::MOTOR;
 
   sprintf(cstr, "Command %d", static_cast<int>(cmd));
   Serial1.println(cstr);
-  bool execute { false };
-  static unsigned long executionTimeMillis{ 0 };
-  unsigned long curMil = millis();
-  static unsigned long prevMil { 0 };
 
-  if (curMil > (prevMil + executionTimeMillis))
-  {
-    execute = true;
-  }
+  unsigned long curMil                     = millis();
+  static unsigned long prevMil             = 0;
+  static unsigned long executionTimeMillis = 0;
+
+  bool execute = curMil > (prevMil + executionTimeMillis);
 
   switch (cmd)
   {
@@ -43,9 +39,7 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
     {
       g_speed = 50;
     }
-
     mHub.setBasicMotorSpeed(mPort, g_speed);
-
     break;
 
   case Commands::Commands::Backward:
@@ -54,21 +48,16 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
     {
       g_speed = -50;
     }
-
     mHub.setBasicMotorSpeed(mPort, g_speed);
     break;
 
   case Commands::Commands::Faster:
-
     increase_speed();
-
     mHub.setBasicMotorSpeed(mPort, g_speed);
     break;
 
   case Commands::Commands::Slower:
-
     decrease_speed();
-
     mHub.setBasicMotorSpeed(mPort, g_speed);
     break;
 
@@ -81,7 +70,9 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
       executionTimeMillis = 500;
     }
     else
+    {
       result = false;
+    }
     break;
 
   case Commands::Commands::Horn:
@@ -93,15 +84,13 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
       executionTimeMillis = 500;
     }
     else
+    {
       result = false;
+    }
     break;
 
   case Commands::Commands::Light:
-    static Color test { Color::PINK };
-
-    // uint8_t tempColor = (static_cast<uint8_t>(test))++;
-    // test = static_cast<Color>(tempColor);
-
+    static Color test = Color::PINK;
     mHub.setLedColor(test);
     break;
 
@@ -114,7 +103,9 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
       executionTimeMillis = 500;
     }
     else
+    {
       result = false;
+    }
     break;
 
   case Commands::Commands::Steam:
@@ -126,7 +117,9 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
       executionTimeMillis = 500;
     }
     else
+    {
       result = false;
+    }
     break;
 
   default:
@@ -134,7 +127,6 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
     break;
   }
 
-  //
   return result;
 }
 

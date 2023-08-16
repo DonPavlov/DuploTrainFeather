@@ -29,14 +29,14 @@ IPAddress local_IP(192, 168, 178, 123);
 IPAddress gateway(192, 168, 178, 1);
 
 IPAddress subnet(255, 255, 255, 0);
-IPAddress primaryDNS(8, 8, 8, 8);        // optional
-IPAddress secondaryDNS(8, 8, 4, 4);      // optional
+IPAddress primaryDNS(8, 8, 8, 8);      // optional
+IPAddress secondaryDNS(8, 8, 4, 4);    // optional
 
-unsigned long startMillis;               // some global variables available anywhere in
-                                         // the program
+unsigned long startMillis;             // some global variables available anywhere in
+                                       // the program
 unsigned long currentMillis;
 unsigned long wifiMillis;
-const unsigned long period       = 2000; // the value is a number of milliseconds
+const unsigned long period       = 50; // the value is a number of milliseconds
 const unsigned long wifi_timeout = 10000;
 bool wifiConSkipped              = false;
 bool wifiSetupfinished           = false;
@@ -85,6 +85,7 @@ void setup()
   WiFi.begin(ssid, password);
   zug.init();
   io_ctrl.init_ctrl(zug);
+  myStrip.rainbow(true);
 }
 
 void loop()
@@ -160,12 +161,11 @@ void loop()
 
   if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
-    myStrip.rainbow(true);
+    // myStrip.rainbow(true);
     startMillis = currentMillis;             // IMPORTANT to save the start
                                              // time of the current LED
                                              // state.
     // zug.stateMachine();
-    Serial1.println(".");
     io_ctrl.read_buttons();
   }
   zug.stateMachine();
