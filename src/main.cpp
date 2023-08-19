@@ -17,6 +17,9 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+// TODO include #include "Adafruit_MAX1704X.h" // for battery voltage monitoring
+
+
 // UART1 GPIO 18 RX GPIO17 TX
 #define RXD1 (18)
 #define TXD1 (17)
@@ -41,8 +44,11 @@ const unsigned long wifi_timeout = 10000;
 bool wifiConSkipped              = false;
 bool wifiSetupfinished           = false;
 
+bool powerSaveMode                     = false;
+const unsigned long powerSaveThreshold = 600000; // 1 minutes in milliseconds
+unsigned long lastActivityTime         = 0;
 
-LightStrip myStrip; // Create an instance of the LightStrip class
+LightStrip myStrip;                              // Create an instance of the LightStrip class
 
 Adafruit_7segment matrix = Adafruit_7segment();
 TrainControl zug;
@@ -71,6 +77,7 @@ void setup()
   // TODO move into TrainControl
   matrix.print("1234");
   matrix.writeDisplay();
+
   myStrip.initialize();
 
   digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
@@ -85,6 +92,7 @@ void setup()
   WiFi.begin(ssid, password);
   zug.init();
   io_ctrl.init_ctrl(zug);
+
   myStrip.rainbow(true);
 }
 
@@ -119,6 +127,7 @@ void loop()
           type = "sketch";
         else // U_SPIFFS
           type = "filesystem";
+        lastActivityTime = millis();
 
         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
         Serial1.println("Start updating " + type);
@@ -152,7 +161,7 @@ void loop()
       wifiSetupfinished = true;
     }
 
-    if (wifiSetupfinished)
+    if ((wifiSetupfinished) && (!powerSaveMode))
     {
       ArduinoOTA.handle();
     }
@@ -175,7 +184,36 @@ void loop()
   // TODO add timeout if no button press occured for 10 minutes and shutdown most of the functionality, until a button
   // is pressed again or reboot. Or just disable wifi after 5 min to save power but might also be necessary for arduino
   // OTA to have changes....
+  // addfunction to stop battery can charge
 
-  // TODO add function to stop after 5 minutes so battery can charge
-  // test_inputs();
+  if (checkPowerSaveNeeded())
+  {
+    powerSaving();
+  }
+}
+
+void powerSaving()
+{
+  powerSaveMode = true;
+  ArduinoOTA.end(); // Stop OTA server
+  Serial1.println("Disable OTA functionality.");
+  myStrip.rainbow(false);
+  matrix.print("");
+  matrix.writeDisplay();
+  Serial1.println("Stop Led Ring and MatrixLeds.");
+  wifiConSkipped = true;
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+  Serial1.println("Disable WiFi");
+}
+
+bool checkPowerSaveNeeded()
+{
+  bool result { false };
+
+  if (!powerSaveMode && (millis() - lastActivityTime >= powerSaveThreshold))
+  {
+    result = true;
+  }
+  return result;
 }

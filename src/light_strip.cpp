@@ -19,6 +19,8 @@ void LightStrip::rainbow(bool enable)
 {
   if (enable)
   {
+    m_strip.setBrightness(4);
+
     for (long firstPixelHue = 0; firstPixelHue < 5 * 65536; firstPixelHue += 256)
     {
       for (int i = 0; i < m_strip.numPixels(); i++)
@@ -32,6 +34,7 @@ void LightStrip::rainbow(bool enable)
   else
   {
     m_strip.fill(m_strip.Color(0, 0, 0), 0, N_LEDS);
+    m_strip.setBrightness(0);
     m_strip.show();
   }
 }

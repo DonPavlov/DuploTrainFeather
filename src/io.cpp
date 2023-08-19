@@ -19,7 +19,7 @@ void IO::init_buttons()
   pinMode(JOY_W, INPUT_PULLUP);
   pinMode(JOY_E, INPUT_PULLUP);
 
-  // configure IO
+  // configure IO Expander
   if (!mcp.begin_I2C())
   {
     Serial1.println("Error.");
@@ -38,13 +38,13 @@ void IO::init_buttons()
     }
   }
 
-  // Configure Port A pins 0 to 5 as INPUT and enable pull-up resistors
+  // Configure Port A pins 0 to 5 as INPUT and enable pull-up resistors on Expandr
   for (int i = 0; i < 6; i++)
   {
     mcp.pinMode(i, INPUT_PULLUP);
   }
 
-  // Configure Port B pins B5 to B0 as OUTPUT
+  // Configure Port B pins B5 to B0 as OUTPUT on Expandr
   for (int i = 13; i >= 8; i--)
   {
     mcp.pinMode(i, OUTPUT);
@@ -179,18 +179,8 @@ void IO::read_buttons()
 
 void IO::execute_command(btn::BtnNr buttonNr)
 {
-  // iterate over m_buttons and if the button matches execute the command saved
-  // in the map Find is saver if data is not inside of map
-  // auto it = m_buttonsData.find(buttonNr);
-
-  // if (it != m_buttonsData.end())
-  // {
-  //   btn::ButtonData& buttonData = it->second;
-  //   m_ctrl.SendCommand(buttonData.command);
-  //   return true;
-  // }
-  // return false;
   btn::ButtonData& buttonData = m_buttonsData[buttonNr];
 
+  lastActivityTime = millis();
   m_ctrl.SendCommand(buttonData.command);
 }

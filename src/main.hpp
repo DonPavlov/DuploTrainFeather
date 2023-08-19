@@ -5,5 +5,7 @@
 
 void rainbowCycle(int delayTime);
 
+void powerSaving();
+bool checkPowerSaveNeeded();
 
 #endif  // MAIN_HPP

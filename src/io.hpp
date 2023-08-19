@@ -12,6 +12,7 @@
 #define JOY_W (14)
 #define JOY_E (8)
 
+extern unsigned long lastActivityTime;
 namespace btn
 {
   struct ButtonData {
