@@ -5,6 +5,8 @@
 #include "ControlInterface.hpp"
 #include "Lpf2Hub.h"
 #include <cstdint>
+#include "commands.hpp"
+
 
 class TrainControl : public ControlInterface {
   /**

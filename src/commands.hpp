@@ -1,5 +1,7 @@
 #ifndef COMMANDS_HPP
 #define COMMANDS_HPP
+#include <map>
+#include <string>
 
 namespace Commands
 {
@@ -17,5 +19,6 @@ namespace Commands
     None      = 0x10
   };
 }
+
 
 #endif // ifndef COMMANDS_HPP

@@ -3,8 +3,34 @@
 #include <cstdint>
 
 Lpf2Hub mHub;
+int8_t  g_speed     = 0;
+int8_t  g_lastSpeed = 0;
 
-int8_t g_speed = 0;
+std::map<Commands::Commands, std::string> commandNames = {
+  { Commands::Commands::Forward,
+    "Forward"                                                                                   },
+  { Commands::Commands::Backward,
+    "Backward"                                                                                        },
+  { Commands::Commands::Stop,
+    "Stop"                                                                                                 },
+  { Commands::Commands::Light,
+    "Light"                                                                                                     },
+  { Commands::Commands::Refill,
+    "Refill"                                                                                                         },
+  { Commands::Commands::Horn,
+    "Horn"                                                                                                                },
+  { Commands::Commands::Steam,
+    "Steam"                                                                                                                    },
+  { Commands::Commands::Departure,
+    "Departure"                                                                                                                     },
+  { Commands::Commands::Faster,
+    "Faster"                                                                                                                             },
+  { Commands::Commands::Slower,
+    "Slower"                                                                                                                                  },
+  { Commands::Commands::None,
+    "None"                                                                                                                                    }
+};
+
 
 TrainControl::TrainControl()
 {}
@@ -23,7 +49,7 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
   byte mPort    = (byte)DuploTrainHubPort::MOTOR;
 
   // TODO Include magic enum and convert enum name of cmd to String
-  sprintf(cstr, "Command %d", static_cast<int>(cmd));
+  sprintf(cstr, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
   Serial1.println(cstr);
 
   unsigned long curMil                     = millis();
@@ -41,6 +67,7 @@ bool TrainControl::SendCommand(Commands::Commands cmd)
     {
       g_speed = 50;
     }
+
     mHub.setBasicMotorSpeed(mPort, g_speed);
     break;
 
@@ -140,6 +167,7 @@ bool TrainControl::SendSpeed(Commands::Commands cmd,
   return result;
 }
 
+// TODO add a timeout to the traincommands after having received a successfull command
 void colorSensorCb(void      *hub,
                    byte       portNumber,
                    DeviceType deviceType,
@@ -169,6 +197,7 @@ void colorSensorCb(void      *hub,
   }
 }
 
+// TODO add a timeout to the traincommands after having received a successfull command
 void speedometerSensorCb(void      *hub,
                          byte       portNumber,
                          DeviceType deviceType,
@@ -180,18 +209,22 @@ void speedometerSensorCb(void      *hub,
   if (deviceType == DeviceType::DUPLO_TRAIN_BASE_SPEEDOMETER)
   {
     int speed = mHub->parseSpeedometer(pData);
-    Serial1.print("Speed: ");
-    Serial1.println(speed);
 
     if (speed > 10)
     {
-      Serial1.println("Forward");
-
       if (g_speed <= 0)
       {
         g_speed = 50;
       }
-      mHub->setBasicMotorSpeed(mPort, g_speed);
+
+      if (g_lastSpeed <= 0)
+      {
+        Serial1.println("Forward");
+        Serial1.print("Speed: ");
+        Serial1.println(speed);
+        mHub->setBasicMotorSpeed(mPort, g_speed);
+        g_lastSpeed = g_speed;
+      }
     }
     else if (speed < -10)
     {
@@ -199,9 +232,15 @@ void speedometerSensorCb(void      *hub,
       {
         g_speed = -50;
       }
-      Serial1.println("Back");
 
-      mHub->setBasicMotorSpeed(mPort, g_speed);
+      if (g_lastSpeed >= 0)
+      {
+        Serial1.println("Back");
+        Serial1.print("Speed: ");
+        Serial1.println(speed);
+        mHub->setBasicMotorSpeed(mPort, g_speed);
+        g_lastSpeed = g_speed;
+      }
     }
     else
     {
@@ -232,7 +271,6 @@ void TrainControl::stateMachine()
       delay(200);
 
       // connect color sensor and activate it for updates
-      // // connect speed sensor and activate it for updates
       mHub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
                               colorSensorCb);
       delay(200);

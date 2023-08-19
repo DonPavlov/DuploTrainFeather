@@ -161,7 +161,7 @@ void loop()
 
   if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
-    // myStrip.rainbow(true);
+    // myStrip.rainbow(true );
     // TODO fix rainbow effect, make it only continue if function is reentered and continue were it was before.
     startMillis = currentMillis; // IMPORTANT to save the start
                                  // time of the current LED
@@ -176,6 +176,6 @@ void loop()
   // is pressed again or reboot. Or just disable wifi after 5 min to save power but might also be necessary for arduino
   // OTA to have changes....
 
-
+  // TODO add function to stop after 5 minutes so battery can charge
   // test_inputs();
 }
