@@ -24,6 +24,7 @@
 #define RXD1 (18)
 #define TXD1 (17)
 
+#if (WIFI_MODE == 1)
 
 // Set your Static IP address
 IPAddress local_IP(192, 168, 178, 123);
@@ -34,7 +35,7 @@ IPAddress gateway(192, 168, 178, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);      // optional
 IPAddress secondaryDNS(8, 8, 4, 4);    // optional
-
+#endif // if (WIFI_MODE == 1)
 unsigned long startMillis;             // some global variables available anywhere in
                                        // the program
 unsigned long currentMillis;
@@ -83,6 +84,7 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
   startMillis = wifiMillis = millis(); // initial start time
 
+#if (WIFI_MODE == 1)
 
   // Init wifi for ota updates
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
@@ -90,24 +92,26 @@ void setup()
     Serial1.println("STA Failed to configure");
   }
   WiFi.begin(ssid, password);
+  #endif // if (WIFI_MODE == 1)
   zug.init();
   io_ctrl.init_ctrl(zug);
 
-  myStrip.rainbow(true);
+  // myStrip.rainbow(true);
 }
 
 void loop()
 {
   currentMillis = millis();
+  #if (WIFI_MODE == 1)
 
   // Skip wifi part if not connected
   if (!wifiConSkipped)
   {
     // Connect to wifi If not already connected
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
-    {
-      Serial1.print(".");
+    uint8_t status = WiFi.waitForConnectResult();
 
+    if (status != WL_CONNECTED)
+    {
       if (currentMillis - wifiMillis >= wifi_timeout)
       {
         wifiConSkipped = true;
@@ -116,7 +120,7 @@ void loop()
     }
 
     // If connected to Wifi and wifi setup not yet finished Setup arduino ota
-    else if ((WiFi.waitForConnectResult() == WL_CONNECTED)
+    else if ((status == WL_CONNECTED)
              && (!wifiSetupfinished))
     {
       ArduinoOTA
@@ -166,7 +170,7 @@ void loop()
       ArduinoOTA.handle();
     }
   }
-
+  #endif // if (WIFI_MODE == 1)
 
   if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
@@ -195,16 +199,18 @@ void loop()
 void powerSaving()
 {
   powerSaveMode = true;
+#if (WIFI_MODE == 1)
   ArduinoOTA.end(); // Stop OTA server
   Serial1.println("Disable OTA functionality.");
-  myStrip.rainbow(false);
-  matrix.print("");
-  matrix.writeDisplay();
-  Serial1.println("Stop Led Ring and MatrixLeds.");
   wifiConSkipped = true;
   WiFi.disconnect();
   WiFi.mode(WIFI_OFF);
   Serial1.println("Disable WiFi");
+#endif // if (WIFI_MODE == 1)
+  myStrip.rainbow(false);
+  matrix.print("");
+  matrix.writeDisplay();
+  Serial1.println("Stop Led Ring and MatrixLeds.");
 }
 
 bool checkPowerSaveNeeded()
@@ -217,3 +223,32 @@ bool checkPowerSaveNeeded()
   }
   return result;
 }
+
+/*
+ #include "Adafruit_MAX1704X.h"
+
+   Adafruit_MAX17048 maxlipo;
+
+   void setup() {
+   Serial.begin(115200);
+   while (!Serial) delay(10);    // wait until serial monitor opens
+
+   Serial.println(F("\nAdafruit MAX17048 simple demo"));
+
+   if (!maxlipo.begin()) {
+    Serial.println(F("Couldnt find Adafruit MAX17048?\nMake sure a battery is plugged in!"));
+    while (1) delay(10);
+   }
+   Serial.print(F("Found MAX17048"));
+   Serial.print(F(" with Chip ID: 0x"));
+   Serial.println(maxlipo.getChipID(), HEX);
+   }
+
+   void loop() {
+   Serial.print(F("Batt Voltage: ")); Serial.print(maxlipo.cellVoltage(), 3); Serial.println(" V");
+   Serial.print(F("Batt Percent: ")); Serial.print(maxlipo.cellPercent(), 1); Serial.println(" %");
+   Serial.println();
+
+   delay(2000);  // dont query too often!
+   }
+ */

@@ -28,8 +28,27 @@ public:
   int8_t get_speed();
   void   init();
   void   stateMachine();
+  bool   checkConnectionToTrain();
+
+  void   speedometerSensorCb(void      *hub,
+                             byte       portNumber,
+                             DeviceType deviceType,
+                             uint8_t   *pData);
+  void colorSensorCb(void      *hub,
+                     byte       portNumber,
+                     DeviceType deviceType,
+                     uint8_t   *pData);
 
 private:
+
+  bool m_connected
+  {
+    false
+  };
+
+  Lpf2Hub m_Hub;
+  volatile int8_t g_speed     = 0;
+  volatile int8_t g_lastSpeed = 0;
 };
 
 #endif // ifndef TRAIN_CONTROL_HPP

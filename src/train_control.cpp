@@ -2,33 +2,30 @@
 #include <Arduino.h>
 #include <cstdint>
 
-Lpf2Hub mHub;
-int8_t  g_speed     = 0;
-int8_t  g_lastSpeed = 0;
 
 std::map<Commands::Commands, std::string> commandNames = {
   { Commands::Commands::Forward,
-    "Forward"                                                                                   },
+    "Forward" },
   { Commands::Commands::Backward,
-    "Backward"                                                                                        },
+    "Backward" },
   { Commands::Commands::Stop,
-    "Stop"                                                                                                 },
+    "Stop" },
   { Commands::Commands::Light,
-    "Light"                                                                                                     },
+    "Light"   },
   { Commands::Commands::Refill,
-    "Refill"                                                                                                         },
+    "Refill"    },
   { Commands::Commands::Horn,
-    "Horn"                                                                                                                },
+    "Horn"  },
   { Commands::Commands::Steam,
-    "Steam"                                                                                                                    },
+    "Steam" },
   { Commands::Commands::Departure,
-    "Departure"                                                                                                                     },
+    "Departure" },
   { Commands::Commands::Faster,
-    "Faster"                                                                                                                             },
+    "Faster" },
   { Commands::Commands::Slower,
-    "Slower"                                                                                                                                  },
+    "Slower" },
   { Commands::Commands::None,
-    "None"                                                                                                                                    }
+    "None"  }
 };
 
 
@@ -39,123 +36,128 @@ TrainControl::TrainControl()
 void TrainControl::init()
 {
   Serial1.println("Setup Train Control");
-  mHub.init();
+  m_Hub.init();
+  checkConnectionToTrain();
 }
 
 bool TrainControl::SendCommand(Commands::Commands cmd)
 {
-  bool result   = true;
-  char cstr[16] = { 0 };
-  byte mPort    = (byte)DuploTrainHubPort::MOTOR;
+  bool result = false;
 
-  // TODO Include magic enum and convert enum name of cmd to String
-  sprintf(cstr, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
-  Serial1.println(cstr);
-
-  unsigned long curMil                     = millis();
-  static unsigned long prevMil             = 0;
-  static unsigned long executionTimeMillis = 0;
-
-  bool execute = curMil > (prevMil + executionTimeMillis);
-
-  // TODO test all buttons and assign apropriate values so all do something
-  switch (cmd)
+  if (checkConnectionToTrain())
   {
-  case Commands::Commands::Forward:
+    result = true;
+    char cstr[16] = { 0 };
+    byte mPort    = (byte)DuploTrainHubPort::MOTOR;
 
-    if (0 == g_speed)
+    // TODO Include magic enum and convert enum name of cmd to String
+    sprintf(cstr, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
+    Serial1.println(cstr);
+
+    unsigned long curMil                     = millis();
+    static unsigned long prevMil             = 0;
+    static unsigned long executionTimeMillis = 0;
+
+    bool execute = curMil > (prevMil + executionTimeMillis);
+
+    // TODO test all buttons and assign apropriate values so all do something
+    switch (cmd)
     {
-      g_speed = 50;
+    case Commands::Commands::Forward:
+
+      if (0 == g_speed)
+      {
+        g_speed = 50;
+      }
+
+      m_Hub.setBasicMotorSpeed(mPort, g_speed);
+      break;
+
+    case Commands::Commands::Backward:
+
+      if (0 == g_speed)
+      {
+        g_speed = -50;
+      }
+      m_Hub.setBasicMotorSpeed(mPort, g_speed);
+      break;
+
+    case Commands::Commands::Faster:
+      increase_speed();
+      m_Hub.setBasicMotorSpeed(mPort, g_speed);
+      break;
+
+    case Commands::Commands::Slower:
+      decrease_speed();
+      m_Hub.setBasicMotorSpeed(mPort, g_speed);
+      break;
+
+    case Commands::Commands::Stop:
+
+      if (execute)
+      {
+        m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
+        prevMil             = curMil;
+        executionTimeMillis = 500;
+      }
+      else
+      {
+        result = false;
+      }
+      break;
+
+    case Commands::Commands::Horn:
+
+      if (execute)
+      {
+        m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
+        prevMil             = curMil;
+        executionTimeMillis = 500;
+      }
+      else
+      {
+        result = false;
+      }
+      break;
+
+    case Commands::Commands::Light:
+      static Color test = Color::PINK;
+      m_Hub.setLedColor(test);
+      break;
+
+    case Commands::Commands::Refill:
+
+      if (execute)
+      {
+        m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
+        prevMil             = curMil;
+        executionTimeMillis = 500;
+      }
+      else
+      {
+        result = false;
+      }
+      break;
+
+    case Commands::Commands::Steam:
+
+      if (execute)
+      {
+        m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
+        prevMil             = curMil;
+        executionTimeMillis = 500;
+      }
+      else
+      {
+        result = false;
+      }
+      break;
+
+    default:
+      executionTimeMillis = 0;
+      break;
     }
-
-    mHub.setBasicMotorSpeed(mPort, g_speed);
-    break;
-
-  case Commands::Commands::Backward:
-
-    if (0 == g_speed)
-    {
-      g_speed = -50;
-    }
-    mHub.setBasicMotorSpeed(mPort, g_speed);
-    break;
-
-  case Commands::Commands::Faster:
-    increase_speed();
-    mHub.setBasicMotorSpeed(mPort, g_speed);
-    break;
-
-  case Commands::Commands::Slower:
-    decrease_speed();
-    mHub.setBasicMotorSpeed(mPort, g_speed);
-    break;
-
-  case Commands::Commands::Stop:
-
-    if (execute)
-    {
-      mHub.playSound((byte)DuploTrainBaseSound::BRAKE);
-      prevMil             = curMil;
-      executionTimeMillis = 500;
-    }
-    else
-    {
-      result = false;
-    }
-    break;
-
-  case Commands::Commands::Horn:
-
-    if (execute)
-    {
-      mHub.playSound((byte)DuploTrainBaseSound::HORN);
-      prevMil             = curMil;
-      executionTimeMillis = 500;
-    }
-    else
-    {
-      result = false;
-    }
-    break;
-
-  case Commands::Commands::Light:
-    static Color test = Color::PINK;
-    mHub.setLedColor(test);
-    break;
-
-  case Commands::Commands::Refill:
-
-    if (execute)
-    {
-      mHub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
-      prevMil             = curMil;
-      executionTimeMillis = 500;
-    }
-    else
-    {
-      result = false;
-    }
-    break;
-
-  case Commands::Commands::Steam:
-
-    if (execute)
-    {
-      mHub.playSound((byte)DuploTrainBaseSound::STEAM);
-      prevMil             = curMil;
-      executionTimeMillis = 500;
-    }
-    else
-    {
-      result = false;
-    }
-    break;
-
-  default:
-    executionTimeMillis = 0;
-    break;
   }
-
   return result;
 }
 
@@ -168,10 +170,10 @@ bool TrainControl::SendSpeed(Commands::Commands cmd,
 }
 
 // TODO add a timeout to the traincommands after having received a successfull command
-void colorSensorCb(void      *hub,
-                   byte       portNumber,
-                   DeviceType deviceType,
-                   uint8_t   *pData)
+void TrainControl::colorSensorCb(void      *hub,
+                                 byte       portNumber,
+                                 DeviceType deviceType,
+                                 uint8_t   *pData)
 {
   Lpf2Hub *mHub = (Lpf2Hub *)hub;
 
@@ -198,10 +200,10 @@ void colorSensorCb(void      *hub,
 }
 
 // TODO add a timeout to the traincommands after having received a successfull command
-void speedometerSensorCb(void      *hub,
-                         byte       portNumber,
-                         DeviceType deviceType,
-                         uint8_t   *pData)
+void TrainControl::speedometerSensorCb(void      *hub,
+                                       byte       portNumber,
+                                       DeviceType deviceType,
+                                       uint8_t   *pData)
 {
   Lpf2Hub *mHub  = (Lpf2Hub *)hub;
   byte     mPort = (byte)DuploTrainHubPort::MOTOR;
@@ -253,32 +255,36 @@ void speedometerSensorCb(void      *hub,
 
 void TrainControl::stateMachine()
 {
-  if (mHub.isConnecting())
+  if (!checkConnectionToTrain())
   {
-    mHub.connectHub();
-    Serial1.println("Connecting...");
-
-    if (mHub.isConnected())
+    if (m_Hub.isConnecting())
     {
-      Serial1.println("Connected to Duplo Hub");
+      m_Hub.connectHub();
+      Serial1.println("Connecting...");
+      delay(100);
 
-      delay(200);
-      delay(200);
+      if (m_Hub.isConnected())
+      {
+        Serial1.println("Connected to Duplo Hub");
 
-      // connect speed sensor and activate it for updates
-      mHub.activatePortDevice((byte)DuploTrainHubPort::SPEEDOMETER,
-                              speedometerSensorCb);
-      delay(200);
+        delay(200);
+        delay(200);
 
-      // connect color sensor and activate it for updates
-      mHub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
-                              colorSensorCb);
-      delay(200);
-      mHub.setLedColor(GREEN);
-    }
-    else
-    {
-      Serial1.println("Failed to connect to Duplo Hub");
+        // connect speed sensor and activate it for updates
+        m_Hub.activatePortDevice((byte)DuploTrainHubPort::SPEEDOMETER,
+                                 speedometerSensorCb);
+        delay(200);
+
+        // connect color sensor and activate it for updates
+        m_Hub.activatePortDevice((byte)DuploTrainHubPort::COLOR,
+                                 colorSensorCb);
+        delay(200);
+        m_Hub.setLedColor(GREEN);
+      }
+      else
+      {
+        Serial1.println("Failed to connect to Duplo Hub");
+      }
     }
   }
 }
@@ -310,4 +316,17 @@ void TrainControl::decrease_speed()
 int8_t TrainControl::get_speed()
 {
   return g_speed;
+}
+
+bool TrainControl::checkConnectionToTrain()
+{
+  if (m_Hub.isConnected())
+  {
+    m_connected = true;
+  }
+  else
+  {
+    m_connected = false;
+  }
+  return m_connected;
 }
