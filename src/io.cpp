@@ -37,12 +37,13 @@ void IO::init_buttons()
       }
     }
   }
-  char cstr[32] = { 0 };
+  constexpr size_t buf_size { 32 };
+  char cstr[buf_size] = { 0 };
 
   // Configure Port A pins 0 to 5 as INPUT and enable pull-up resistors on Expandr
   for (int i = 0; i < 6; i++)
   {
-    sprintf(cstr, "Input Pin %d", i);
+    snprintf(cstr, buf_size, "Input Pin %d", i);
     Serial1.println(cstr);
     mcp.pinMode(i, INPUT_PULLUP);
   }
@@ -50,7 +51,7 @@ void IO::init_buttons()
   // Configure Port B pins B5 to B0 as OUTPUT on Expandr
   for (int i = 13; i >= 8; i--)
   {
-    sprintf(cstr, "Output Pin %d", i);
+    snprintf(cstr, buf_size, "Output Pin %d", i);
     Serial1.println(cstr);
     mcp.pinMode(i, OUTPUT);
   }

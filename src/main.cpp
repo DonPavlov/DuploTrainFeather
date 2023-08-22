@@ -374,11 +374,11 @@ bool SendCommand(Commands::Commands cmd)
   if (checkConnectionToTrain())
   {
     result = true;
-    char cstr[16] = { 0 };
-    byte mPort    = (byte)DuploTrainHubPort::MOTOR;
+    constexpr size_t buf_size { 12 };
+    char cstr[buf_size] = { 0 };
+    byte mPort          = (byte)DuploTrainHubPort::MOTOR;
 
-    // TODO Include magic enum and convert enum name of cmd to String
-    sprintf(cstr, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
+    snprintf(cstr, buf_size, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
     Serial1.println(cstr);
 
     unsigned long curMil         = millis();
