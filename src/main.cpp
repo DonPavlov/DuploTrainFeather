@@ -391,8 +391,6 @@ bool SendCommand(Commands::Commands cmd)
     {
     case Commands::Commands::Forward:
     {
-      Serial1.println("Debugging 1");
-
       if (execute)
       {
         if (0 == g_speed)
@@ -409,8 +407,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Backward:
     {
-      Serial1.println("Debugging 2");
-
       if (execute)
       {
         if (0 == g_speed)
@@ -429,8 +425,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Stop:
     {
-      Serial1.println("Debugging 5");
-
       if (execute)
       {
         // m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
@@ -443,11 +437,8 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Light:
     {
-      Serial1.println("Debugging 7");
-
       if (execute)
       {
-        Serial1.println("Debugging 71");
         static Color test = Color::PINK;
 
         // m_Hub.setLedColor(test);
@@ -460,8 +451,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Refill:
     {
-      Serial1.println("Debugging 8");
-
       if (execute)
       {
         // m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
@@ -474,8 +463,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Horn:
     {
-      Serial1.println("Debugging 6");
-
       if (execute)
       {
         // m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
@@ -489,8 +476,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Steam:
     {
-      Serial1.println("Debugging 9");
-
       if (execute)
       {
         // m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
@@ -503,8 +488,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Departure:
     {
-      Serial1.println("Debugging x");
-
       if (execute)
       {
         // m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
@@ -516,8 +499,6 @@ bool SendCommand(Commands::Commands cmd)
     }
 
     case Commands::Commands::Faster: {
-      Serial1.println("Debugging 3");
-
       if (execute)
       {
         increase_speed();
@@ -532,8 +513,6 @@ bool SendCommand(Commands::Commands cmd)
 
     case Commands::Commands::Slower:
     {
-      Serial1.println("Debugging 4");
-
       if (execute)
       {
         decrease_speed();

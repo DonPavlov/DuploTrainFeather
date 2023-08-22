@@ -1019,7 +1019,6 @@ byte Lpf2Hub::getPortForDeviceType(byte deviceType)
  */
 void Lpf2Hub::setLedColor(Color color)
 {
-  Serial1.println("14");
   byte port            = getPortForDeviceType((byte)DeviceType::HUB_LED);
   byte setColorMode[8] = { 0x41, port, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00 };
 
@@ -1303,7 +1302,6 @@ std::string Lpf2Hub::getHubName()
  */
 void Lpf2Hub::setBasicMotorSpeed(byte port, int speed = 0)
 {
-  Serial1.println("15");
   byte setMotorCommand[8] = { 0x81, port, 0x11, 0x51, 0x00, LegoinoCommon::MapSpeed(speed) }; // train, batmobil
 
   WriteValue(setMotorCommand, 6);
@@ -1315,7 +1313,6 @@ void Lpf2Hub::setBasicMotorSpeed(byte port, int speed = 0)
  */
 void Lpf2Hub::stopBasicMotor(byte port)
 {
-  Serial1.println("13");
   setBasicMotorSpeed(port, 0);
 }
 
@@ -1484,7 +1481,6 @@ void Lpf2Hub::setTachoMotorSpeedsForDegrees(int          speedLeft,
  */
 void Lpf2Hub::playSound(byte sound)
 {
-  Serial1.println("13");
   byte setSoundMode[8] = { 0x41, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01 };
 
   WriteValue(setSoundMode, 8);
