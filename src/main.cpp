@@ -54,6 +54,7 @@ bool powerSaveMode { false };
 const unsigned long powerSaveThreshold { 600000 }; // 1 minutes in milliseconds
 unsigned long lastActivityTime         { 0 };
 unsigned long executionTimeMillis { 0 };
+constexpr unsigned long m_hub_delay { 20 };
 
 LightStrip myStrip; // Create an instance of the LightStrip class
 
@@ -393,7 +394,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        if (0 == g_speed)
+        if (0 >= g_speed)
         {
           g_speed = 50;
         }
@@ -409,7 +410,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        if (0 == g_speed)
+        if (0 <= g_speed)
         {
           g_speed = -50;
         }
@@ -428,6 +429,8 @@ bool SendCommand(Commands::Commands cmd)
       if (execute)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
+        delay(m_hub_delay);
+        m_Hub.setBasicMotorSpeed(mPort, 0);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -439,6 +442,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
+        // TODO add color cycling
         static Color test = Color::PINK;
 
         m_Hub.setLedColor(test);
