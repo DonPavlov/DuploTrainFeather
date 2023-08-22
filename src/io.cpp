@@ -37,21 +37,25 @@ void IO::init_buttons()
       }
     }
   }
+  char cstr[32] = { 0 };
 
   // Configure Port A pins 0 to 5 as INPUT and enable pull-up resistors on Expandr
   for (int i = 0; i < 6; i++)
   {
+    sprintf(cstr, "Input Pin %d", i);
+    Serial1.println(cstr);
     mcp.pinMode(i, INPUT_PULLUP);
   }
 
   // Configure Port B pins B5 to B0 as OUTPUT on Expandr
   for (int i = 13; i >= 8; i--)
   {
+    sprintf(cstr, "Output Pin %d", i);
+    Serial1.println(cstr);
     mcp.pinMode(i, OUTPUT);
   }
 
   // initialize all IO by using the register button function and assign a
-  // command to it
 
   // Setup Pullup and Inputs
 
@@ -77,11 +81,6 @@ void IO::register_button(btn::BtnNr buttonNr, Commands::Commands command)
   buttonData.previousValue = 1; // Initialize previous value
 
   m_buttonsData[buttonNr] = buttonData;
-}
-
-void IO::init_ctrl(TrainControl& ctrl)
-{
-  m_ctrl = ctrl;
 }
 
 // TODO add button lighting to do something, while each button is pressed enable LED.
@@ -182,5 +181,5 @@ void IO::execute_command(btn::BtnNr buttonNr)
   btn::ButtonData& buttonData = m_buttonsData[buttonNr];
 
   lastActivityTime = millis();
-  m_ctrl.SendCommand(buttonData.command);
+  SendCommand(buttonData.command);
 }

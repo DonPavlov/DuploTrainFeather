@@ -1,11 +1,11 @@
 #ifndef IO_HPP
 #define IO_HPP
 #include "commands.hpp"
-#include "train_control.hpp"
 #include <unordered_map>
 #include <cstdint>
 #include <string>
 #include <Adafruit_MCP23X17.h>
+#include "main.hpp"
 
 #define JOY_N (16)
 #define JOY_S (15)
@@ -61,11 +61,8 @@ public:
 
   void read_buttons();
 
-  void init_ctrl(TrainControl& ctrl);
-
 private:
 
-  TrainControl m_ctrl;
   bool ctrl_initalized { false };
   std::unordered_map<btn::BtnNr, btn::ButtonData>m_buttonsData;
   void execute_command(btn::BtnNr buttonNr);
