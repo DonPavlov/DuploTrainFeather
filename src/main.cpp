@@ -54,7 +54,10 @@ bool powerSaveMode { false };
 const unsigned long powerSaveThreshold { 600000 }; // 1 minutes in milliseconds
 unsigned long lastActivityTime         { 0 };
 unsigned long executionTimeMillis { 0 };
+unsigned long prevExecutionMillis { 0 };
+unsigned long currentExecutionMillis { 0 };
 constexpr unsigned long m_hub_delay { 20 };
+constexpr unsigned long callback_execution_delay{ 50 };
 
 LightStrip myStrip; // Create an instance of the LightStrip class
 
@@ -383,10 +386,10 @@ bool SendCommand(Commands::Commands cmd)
     snprintf(cstr, buf_size, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
     Serial1.println(cstr);
 
-    unsigned long curMil         = millis();
-    static unsigned long prevMil = millis();
+    currentExecutionMillis = millis();
+    prevExecutionMillis    = millis();
 
-    bool execute = curMil >= (prevMil + executionTimeMillis);
+    bool execute = currentExecutionMillis >= (prevExecutionMillis + executionTimeMillis);
 
     switch (cmd)
     {
@@ -400,7 +403,7 @@ bool SendCommand(Commands::Commands cmd)
         }
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 100;
       }
       break;
@@ -416,7 +419,7 @@ bool SendCommand(Commands::Commands cmd)
         }
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 100;
       }
 
@@ -431,7 +434,7 @@ bool SendCommand(Commands::Commands cmd)
         m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
         delay(m_hub_delay);
         m_Hub.setBasicMotorSpeed(mPort, 0);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 500;
       }
 
@@ -446,7 +449,7 @@ bool SendCommand(Commands::Commands cmd)
         static Color test = Color::PINK;
 
         m_Hub.setLedColor(test);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 200;
       }
 
@@ -458,7 +461,7 @@ bool SendCommand(Commands::Commands cmd)
       if (execute)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 500;
       }
 
@@ -470,7 +473,7 @@ bool SendCommand(Commands::Commands cmd)
       if (execute)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 500;
       }
 
@@ -483,7 +486,7 @@ bool SendCommand(Commands::Commands cmd)
       if (execute)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 500;
       }
 
@@ -495,7 +498,7 @@ bool SendCommand(Commands::Commands cmd)
       if (execute)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 500;
       }
 
@@ -508,7 +511,7 @@ bool SendCommand(Commands::Commands cmd)
         increase_speed();
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 100;
       }
 
@@ -522,7 +525,7 @@ bool SendCommand(Commands::Commands cmd)
         decrease_speed();
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
-        prevMil             = curMil;
+        prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 100;
       }
 
