@@ -387,7 +387,7 @@ bool SendCommand(Commands::Commands cmd)
     Serial1.println(cstr);
 
     currentExecutionMillis = millis();
-    prevExecutionMillis    = millis();
+
 
     bool execute = currentExecutionMillis >= (prevExecutionMillis + executionTimeMillis);
     snprintf(cstr, buf_size, "Execute: %s", execute ? "true" : "false");
