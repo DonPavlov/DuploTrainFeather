@@ -57,7 +57,7 @@ unsigned long executionTimeMillis { 0 };
 
 LightStrip myStrip; // Create an instance of the LightStrip class
 
-// Adafruit_7segment matrix = Adafruit_7segment();
+Adafruit_7segment matrix = Adafruit_7segment();
 IO io_ctrl;
 
 std::map<Commands::Commands, std::string> commandNames = {
@@ -182,13 +182,13 @@ void setup()
 
   digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage
                                    // level)
-  // matrix.begin(0x70);              // Init I2C Display
+  matrix.begin(0x70);              // Init I2C Display
 
 
   static uint8_t number = 0;
 
-  // matrix.print("1234");
-  // matrix.writeDisplay();
+  matrix.print("1234");
+  matrix.writeDisplay();
 
   myStrip.initialize();
 
@@ -210,7 +210,7 @@ void setup()
   m_Hub.init();
   checkConnectionToTrain();
 
-  // myStrip.rainbow(true);
+  myStrip.rainbow(true);
 }
 
 void loop()
@@ -288,7 +288,8 @@ void loop()
 
   if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
-    // myStrip.rainbow(true );
+    myStrip.rainbow(true);
+
     // TODO fix rainbow effect, make it only continue if function is reentered and continue were it was before.
     startMillis = currentMillis; // IMPORTANT to save the start
                                  // time of the current LED
@@ -323,8 +324,8 @@ void powerSaving()
 #endif // if (WIFI_MODE == 1)
   myStrip.rainbow(false);
 
-  // matrix.print("");
-  // matrix.writeDisplay();
+  matrix.print("    ");
+  matrix.writeDisplay();
   Serial1.println("Stop Led Ring and MatrixLeds.");
 }
 
@@ -374,7 +375,7 @@ bool SendCommand(Commands::Commands cmd)
   if (checkConnectionToTrain())
   {
     result = true;
-    constexpr size_t buf_size { 12 };
+    constexpr size_t buf_size { 32 };
     char cstr[buf_size] = { 0 };
     byte mPort          = (byte)DuploTrainHubPort::MOTOR;
 
@@ -386,7 +387,6 @@ bool SendCommand(Commands::Commands cmd)
 
     bool execute = curMil >= (prevMil + executionTimeMillis);
 
-    // TODO test all buttons and assign apropriate values so all do something
     switch (cmd)
     {
     case Commands::Commands::Forward:
@@ -398,7 +398,7 @@ bool SendCommand(Commands::Commands cmd)
           g_speed = 50;
         }
 
-        // m_Hub.setBasicMotorSpeed(mPort, g_speed);
+        m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevMil             = curMil;
         executionTimeMillis = 100;
       }
@@ -414,7 +414,7 @@ bool SendCommand(Commands::Commands cmd)
           g_speed = -50;
         }
 
-        // m_Hub.setBasicMotorSpeed(mPort, g_speed);
+        m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevMil             = curMil;
         executionTimeMillis = 100;
       }
@@ -427,7 +427,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
+        m_Hub.playSound((byte)DuploTrainBaseSound::BRAKE);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -441,7 +441,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         static Color test = Color::PINK;
 
-        // m_Hub.setLedColor(test);
+        m_Hub.setLedColor(test);
         prevMil             = curMil;
         executionTimeMillis = 200;
       }
@@ -453,7 +453,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
+        m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -465,7 +465,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
+        m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -478,7 +478,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
+        m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -490,7 +490,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
+        m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
         prevMil             = curMil;
         executionTimeMillis = 500;
       }
@@ -503,7 +503,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         increase_speed();
 
-        // m_Hub.setBasicMotorSpeed(mPort, g_speed);
+        m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevMil             = curMil;
         executionTimeMillis = 100;
       }
@@ -517,7 +517,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         decrease_speed();
 
-        // m_Hub.setBasicMotorSpeed(mPort, g_speed);
+        m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevMil             = curMil;
         executionTimeMillis = 100;
       }
