@@ -406,7 +406,7 @@ bool SendCommand(Commands::Commands cmd)
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 100;
+        executionTimeMillis = 50;
       }
       break;
     }
@@ -422,7 +422,7 @@ bool SendCommand(Commands::Commands cmd)
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 100;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -437,7 +437,7 @@ bool SendCommand(Commands::Commands cmd)
         delay(m_hub_delay);
         m_Hub.setBasicMotorSpeed(mPort, 0);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 500;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -452,7 +452,7 @@ bool SendCommand(Commands::Commands cmd)
 
         m_Hub.setLedColor(test);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 200;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -464,7 +464,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::WATER_REFILL);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 500;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -476,7 +476,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::HORN);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 500;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -489,7 +489,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 500;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -501,7 +501,7 @@ bool SendCommand(Commands::Commands cmd)
       {
         m_Hub.playSound((byte)DuploTrainBaseSound::STEAM);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 500;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -514,7 +514,7 @@ bool SendCommand(Commands::Commands cmd)
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 100;
+        executionTimeMillis = 50;
       }
 
       break;
@@ -528,7 +528,7 @@ bool SendCommand(Commands::Commands cmd)
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
-        executionTimeMillis = 100;
+        executionTimeMillis = 50;
       }
 
       break;
