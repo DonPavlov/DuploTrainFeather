@@ -15,6 +15,7 @@ private:
 
   // map represents the pin and the
   Adafruit_NeoPixel m_strip;
+  int m_hueShift { 0 };
 
 public:
 

@@ -177,7 +177,7 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   Serial1.begin(115200, SERIAL_8N1, RXD1, TXD1);
 
-  io_ctrl.init_buttons();
+  io_ctrl.initButtons();
 
   // Set ESP32 pins 5 and 9 as INPUT_PULLUP
   pinMode(5, INPUT_PULLUP);        // make sure pins don't die, they are connected to the lvl shifter
@@ -199,7 +199,11 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
   startMillis = wifiMillis = millis(); // initial start time
 
+  myStrip.rainbow(true);
+
   Serial1.println("Setup Train Control");
+  m_Hub.init();
+  checkConnectionToTrain();
 
 #if (WIFI_MODE == 1)
 
@@ -210,11 +214,6 @@ void setup()
   }
   WiFi.begin(ssid, password);
   #endif // if (WIFI_MODE == 1)
-
-  m_Hub.init();
-  checkConnectionToTrain();
-
-  myStrip.rainbow(true);
 }
 
 void loop()
@@ -277,7 +276,7 @@ void loop()
 
       ArduinoOTA.begin();
 
-      Serial1.println("Ready");
+      Serial1.println("Wifi Ready");
       Serial1.print("IP address: ");
       Serial1.println(WiFi.localIP());
       wifiSetupfinished = true;
@@ -298,7 +297,7 @@ void loop()
     startMillis = currentMillis; // IMPORTANT to save the start
                                  // time of the current LED
                                  // state.
-    io_ctrl.read_buttons();
+    io_ctrl.readButtons();
   }
 
   // TODO only execute if necessary, make sure train can reconnect if connection is lost.

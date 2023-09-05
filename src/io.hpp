@@ -53,19 +53,19 @@ public:
   ~IO() = default;
 
 
-  void init_buttons();
+  void initButtons();
 
   // Function to register a button to a specific function and parameters
-  void register_button(btn::BtnNr         buttonNr,
-                       Commands::Commands command);
+  void registerButton(btn::BtnNr         buttonNr,
+                      Commands::Commands command);
 
-  void read_buttons();
+  void readButtons();
 
 private:
 
   bool ctrl_initalized { false };
   std::unordered_map<btn::BtnNr, btn::ButtonData>m_buttonsData;
-  void execute_command(btn::BtnNr buttonNr);
+  void executeCommand(btn::BtnNr buttonNr);
   Adafruit_MCP23X17 mcp;
 };
 

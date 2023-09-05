@@ -11,7 +11,7 @@ IO::IO()
   // give every button used a fitting command
 }
 
-void IO::init_buttons()
+void IO::initButtons()
 {
   // Set the inputs for
   pinMode(JOY_N, INPUT_PULLUP);
@@ -60,20 +60,20 @@ void IO::init_buttons()
 
   // Setup Pullup and Inputs
 
-  register_button(btn::BtnNr::BTN0,    Commands::Commands::Stop);
-  register_button(btn::BtnNr::BTN1,    Commands::Commands::Light);
-  register_button(btn::BtnNr::BTN2,    Commands::Commands::Refill);
-  register_button(btn::BtnNr::BTN3,    Commands::Commands::Horn);
-  register_button(btn::BtnNr::BTN4,    Commands::Commands::Steam);
-  register_button(btn::BtnNr::BTN5,    Commands::Commands::Departure);
-  register_button(btn::BtnNr::BTN_J_N, Commands::Commands::Forward);
-  register_button(btn::BtnNr::BTN_J_S, Commands::Commands::Backward);
-  register_button(btn::BtnNr::BTN_J_W, Commands::Commands::Faster);
-  register_button(btn::BtnNr::BTN_J_E, Commands::Commands::Slower);
+  registerButton(btn::BtnNr::BTN0,    Commands::Commands::Stop);
+  registerButton(btn::BtnNr::BTN1,    Commands::Commands::Light);
+  registerButton(btn::BtnNr::BTN2,    Commands::Commands::Refill);
+  registerButton(btn::BtnNr::BTN3,    Commands::Commands::Horn);
+  registerButton(btn::BtnNr::BTN4,    Commands::Commands::Steam);
+  registerButton(btn::BtnNr::BTN5,    Commands::Commands::Departure);
+  registerButton(btn::BtnNr::BTN_J_N, Commands::Commands::Forward);
+  registerButton(btn::BtnNr::BTN_J_S, Commands::Commands::Backward);
+  registerButton(btn::BtnNr::BTN_J_W, Commands::Commands::Faster);
+  registerButton(btn::BtnNr::BTN_J_E, Commands::Commands::Slower);
 }
 
 //
-void IO::register_button(btn::BtnNr buttonNr, Commands::Commands command)
+void IO::registerButton(btn::BtnNr buttonNr, Commands::Commands command)
 {
   btn::ButtonData buttonData;
 
@@ -85,7 +85,7 @@ void IO::register_button(btn::BtnNr buttonNr, Commands::Commands command)
 }
 
 // TODO add button lighting to do something, while each button is pressed enable LED.
-void IO::read_buttons()
+void IO::readButtons()
 {
   uint8_t reg_A = mcp.readGPIOA();
 
@@ -106,7 +106,7 @@ void IO::read_buttons()
     // Compare previous and current values and execute the command if needed
     if ((buttonData.currentValue == LOW) && (buttonData.previousValue == HIGH))
     {
-      execute_command(buttonNr);
+      executeCommand(buttonNr);
     }
 
     // TODO add button lighting to do something
@@ -172,12 +172,12 @@ void IO::read_buttons()
     // Compare previous and current values and execute the command if needed
     if ((buttonData.currentValue == LOW) && (buttonData.previousValue == HIGH))
     {
-      execute_command(buttonNr);
+      executeCommand(buttonNr);
     }
   }
 }
 
-void IO::execute_command(btn::BtnNr buttonNr)
+void IO::executeCommand(btn::BtnNr buttonNr)
 {
   btn::ButtonData& buttonData = m_buttonsData[buttonNr];
 

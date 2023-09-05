@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "light_strip.hpp"
 
 // Constructor: Initialize the NeoPixel strip with the specified pin and number
@@ -19,16 +20,20 @@ void LightStrip::rainbow(bool enable)
 {
   if (enable)
   {
-    m_strip.setBrightness(4);
+    m_strip.setBrightness(3);
 
-    for (long firstPixelHue = 0; firstPixelHue < 65536; firstPixelHue += 256)
+    for (int i = 0; i < m_strip.numPixels(); i++)
     {
-      for (int i = 0; i < m_strip.numPixels(); i++)
-      {
-        int pixelHue = firstPixelHue + (i * 65536L / m_strip.numPixels());
-        m_strip.setPixelColor(i, m_strip.gamma32(m_strip.ColorHSV(pixelHue)));
-      }
-      m_strip.show();
+      int pixelHue = (i * 65536L / m_strip.numPixels() + m_hueShift) % 65536;
+      m_strip.setPixelColor(i, m_strip.gamma32(m_strip.ColorHSV(pixelHue)));
+    }
+    m_strip.show();
+
+    m_hueShift += 500; // Adjust the hue shift increment for the color variation
+
+    if (m_hueShift >= 65536)
+    {
+      m_hueShift = 0;
     }
   }
   else
