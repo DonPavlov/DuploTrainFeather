@@ -27,7 +27,7 @@ Lpf2Hub m_Hub;
 volatile int8_t g_speed { 0 };
 volatile int8_t g_lastSpeed{ 0 };
 bool m_connected{  false };
-
+constexpr size_t buf_size { 32 };
 
 #if (WIFI_MODE == 1)
 
@@ -99,9 +99,6 @@ static void colorSensorCb(void      *hub,
   if (deviceType == DeviceType::DUPLO_TRAIN_BASE_COLOR_SENSOR)
   {
     int color = mHub->parseColor(pData);
-    Serial1.print("Color: ");
-    Serial1.println(COLOR_STRING[color]);
-    mHub->setLedColor((Color)color);
 
     if (color == (byte)RED)
     {
@@ -371,19 +368,17 @@ bool checkPowerSaveNeeded()
    delay(2000);  // dont query too often!
    }
  */
-bool SendCommand(Commands::Commands cmd)
+void SendCommand(Commands::Commands cmd)
 {
-  bool result = false;
+  char cstr[buf_size] = { 0 };
+  byte mPort          = (byte)DuploTrainHubPort::MOTOR;
+
+  snprintf(cstr, buf_size, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
+  Serial1.println(cstr);
 
   if (checkConnectionToTrain())
   {
-    result = true;
-    constexpr size_t buf_size { 32 };
-    char cstr[buf_size] = { 0 };
-    byte mPort          = (byte)DuploTrainHubPort::MOTOR;
-
-    snprintf(cstr, buf_size, "Command %d: %s", static_cast<int>(cmd), commandNames[cmd].c_str());
-    Serial1.println(cstr);
+    byte mPort = (byte)DuploTrainHubPort::MOTOR;
 
     currentExecutionMillis = millis();
 
@@ -391,6 +386,7 @@ bool SendCommand(Commands::Commands cmd)
     bool execute = currentExecutionMillis >= (prevExecutionMillis + executionTimeMillis);
     snprintf(cstr, buf_size, "Execute: %s", execute ? "true" : "false");
     Serial1.println(cstr);
+
 
     switch (cmd)
     {
@@ -509,7 +505,7 @@ bool SendCommand(Commands::Commands cmd)
     case Commands::Commands::Faster: {
       if (execute)
       {
-        increase_speed();
+        increaseSpeed();
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
@@ -523,7 +519,7 @@ bool SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        decrease_speed();
+        decreaseSpeed();
 
         m_Hub.setBasicMotorSpeed(mPort, g_speed);
         prevExecutionMillis = currentExecutionMillis;
@@ -537,19 +533,15 @@ bool SendCommand(Commands::Commands cmd)
       executionTimeMillis = 0;
       break;
     }
-
-    if (!execute)
-      result = false;
   }
-
-
-  return result;
 }
 
 void stateMachine()
 {
   if (!checkConnectionToTrain())
   {
+    Serial1.println("Train not connected");
+
     if (m_Hub.isConnecting())
     {
       m_Hub.connectHub();
@@ -582,7 +574,7 @@ void stateMachine()
   }
 }
 
-void increase_speed()
+void increaseSpeed()
 {
   g_speed += 10;
 
@@ -596,7 +588,7 @@ void increase_speed()
   }
 }
 
-void decrease_speed()
+void decreaseSpeed()
 {
   g_speed -= 10;
 
@@ -606,7 +598,7 @@ void decrease_speed()
   }
 }
 
-int8_t get_speed()
+int8_t getSpeed()
 {
   return g_speed;
 }
@@ -616,10 +608,12 @@ bool checkConnectionToTrain()
   if (m_Hub.isConnected())
   {
     m_connected = true;
+    Serial1.println("connected");
   }
   else
   {
     m_connected = false;
+    Serial1.println("not connected");
   }
   return m_connected;
 }
