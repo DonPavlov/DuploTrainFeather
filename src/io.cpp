@@ -5,11 +5,6 @@
 #include <array>
 #include <string>
 
-//
-IO::IO()
-{
-  // give every button used a fitting command
-}
 
 void IO::initButtons()
 {

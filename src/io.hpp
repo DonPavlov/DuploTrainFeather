@@ -49,8 +49,7 @@ class IO {
 
 public:
 
-  IO();
-  ~IO() = default;
+  IO() = default;
 
 
   void initButtons();

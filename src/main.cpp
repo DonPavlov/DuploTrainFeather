@@ -38,14 +38,16 @@ IPAddress local_IP(192, 168, 178, 123);
 IPAddress gateway(192, 168, 178, 1);
 
 IPAddress subnet(255, 255, 255, 0);
-IPAddress primaryDNS(8, 8, 8, 8);        // optional
-IPAddress secondaryDNS(8, 8, 4, 4);      // optional
+IPAddress primaryDNS(8, 8, 8, 8);   // optional
+IPAddress secondaryDNS(8, 8, 4, 4); // optional
 #endif // if (WIFI_MODE == 1)
-unsigned long startMillis;               // some global variables available anywhere in
-                                         // the program
+unsigned long startMillis;          // some global variables available anywhere in
+                                    // the program
 unsigned long currentMillis;
 unsigned long wifiMillis;
-const unsigned long period       { 50 }; // the value is a number of milliseconds
+unsigned long long_periodMillis;
+const unsigned long period       { 25 }; // the value is a number of milliseconds
+const unsigned long long_period  { 1000 };
 const unsigned long wifi_timeout { 10000 };
 bool wifiConSkipped              { false };
 bool wifiSetupfinished           { false };
@@ -193,8 +195,8 @@ void setup()
 
   myStrip.initialize();
 
-  digitalWrite(LED_BUILTIN, LOW);      // turn the LED off
-  startMillis = wifiMillis = millis(); // initial start time
+  digitalWrite(LED_BUILTIN, LOW);                          // turn the LED off
+  startMillis = wifiMillis = long_periodMillis = millis(); // initial start time
 
   myStrip.rainbow(true);
 
@@ -288,17 +290,21 @@ void loop()
 
   if (currentMillis - startMillis >= period) // test whether the period has elapsed
   {
-    myStrip.rainbow(true);
-
     // TODO fix rainbow effect, make it only continue if function is reentered and continue were it was before.
-    startMillis = currentMillis; // IMPORTANT to save the start
-                                 // time of the current LED
-                                 // state.
+
     io_ctrl.readButtons();
+    startMillis = currentMillis;
+    myStrip.rainbow(true);
   }
 
-  // TODO only execute if necessary, make sure train can reconnect if connection is lost.
-  stateMachine();
+  if (currentMillis - long_periodMillis >= long_period)
+  {
+    long_periodMillis = millis();
+
+    // TODO only execute if necessary, make sure train can reconnect if connection is lost.
+    stateMachine();
+  }
+
 
   // TODO add timeout if no button press occured for 10 minutes and shutdown most of the functionality, until a button
   // is pressed again or reboot. Or just disable wifi after 5 min to save power but might also be necessary for arduino
@@ -324,7 +330,10 @@ void powerSaving()
 #endif // if (WIFI_MODE == 1)
   myStrip.rainbow(false);
 
-  matrix.print("    ");
+  for (int i = 0; i < 4; i++)
+  {
+    matrix.writeDigitRaw(i, 0);
+  }
   matrix.writeDisplay();
   Serial1.println("Stop Led Ring and MatrixLeds.");
 }
@@ -442,10 +451,10 @@ void SendCommand(Commands::Commands cmd)
     {
       if (execute)
       {
-        // TODO add color cycling
-        static Color test = Color::PINK;
-
-        m_Hub.setLedColor(test);
+        Color currentColor = cycleColor();
+        Serial1.print("Current Color: ");
+        Serial1.println(static_cast<int>(currentColor));
+        m_Hub.setLedColor(currentColor);
         prevExecutionMillis = currentExecutionMillis;
         executionTimeMillis = 50;
       }
@@ -571,6 +580,10 @@ void stateMachine()
         Serial1.println("Failed to connect to Duplo Hub");
       }
     }
+    else
+    {
+      m_Hub.connectHub();
+    }
   }
 }
 
@@ -608,12 +621,36 @@ bool checkConnectionToTrain()
   if (m_Hub.isConnected())
   {
     m_connected = true;
-    Serial1.println("connected");
   }
   else
   {
     m_connected = false;
-    Serial1.println("not connected");
   }
   return m_connected;
+}
+
+// Function to cycle through colors
+Color cycleColor()
+{
+  static Color currentColor = Color::PINK; // Static variable to store the current color
+
+  int currentIndex = static_cast<int>(currentColor);
+
+  if (currentIndex == static_cast<int>(Color::NONE))
+  {
+    currentIndex = 0; // Reset to 0 when it's Color::NONE
+  }
+  else
+  {
+    currentIndex = (currentIndex + 1) % static_cast<int>(Color::NUM_COLORS);
+
+    if (currentIndex >= static_cast<int>(Color::NUM_COLORS))
+    {
+      currentIndex = static_cast<int>(Color::NONE); // Reset to None after the modulo operation
+    }
+  }
+
+  currentColor = static_cast<Color>(currentIndex);
+
+  return currentColor;
 }

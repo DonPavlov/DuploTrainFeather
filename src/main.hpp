@@ -23,5 +23,6 @@ void   init();
 void   stateMachine();
 bool   checkConnectionToTrain();
 
-
+// Function to cycle through colors
+Color  cycleColor();
 #endif  // MAIN_HPP
